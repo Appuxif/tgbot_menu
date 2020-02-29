@@ -110,9 +110,9 @@ def get_menu_dict():
 def get_all():
     global menu_dict
     global tour_list
-    data = get_data_from_sheet('?getAll=1')
+    data = None
     while data is None:
-        data = get_data_from_sheet('?getData=1')
+        data = get_data_from_sheet('?getAll=1')
         if data:
             tour_list = get_tour_list_from_data(data['schedule'])
             menu_dict = get_menu_dict_from_data(data['menu'])
@@ -121,6 +121,7 @@ def get_all():
             sleep(1)
 get_all()
 print('Гугл таблица загружена')
+
 
 # Возвращает объект клавиатуры для телеграма
 def make_keyboard(buttons, row_width=2):
