@@ -40,8 +40,8 @@ menu2_list = [
 menu_dict = {}
 
 payment_list = [
-    'Лично курьеру',
-    'Что-то еще'
+    ('0', 'Лично курьеру'),
+    ('1', 'Что-то еще')
 ]
 
 users = {}
@@ -60,7 +60,7 @@ def get_tour_list():
     global tour_list
     data = get_data_from_sheet('?getData=1')
     if data:
-        tour_list = [d['schedule'] for d in data['data']]
+        tour_list = [(d['index'], d['schedule']) for d in data['data']]
 get_tour_list()
 
 
@@ -87,7 +87,7 @@ get_menu_dict()
 def make_keyboard(buttons, row_width=2):
     # buttons - массив с текстом кнопок
     markup = InlineKeyboardMarkup(row_width=row_width)
-    btns = [InlineKeyboardButton(text=btn, callback_data=t + btn[:10]) for t, btn in buttons]
+    btns = [InlineKeyboardButton(text=btn_text, callback_data=btn_call) for btn_text, btn_call in buttons]
     markup.add(*btns)
     return markup
 
@@ -125,8 +125,8 @@ def listener(messages):
             send_keyboard(
                 msg,
                 f'Ваше ФИО: {msg.text}\nПродолжаем?',
-                [('fio_', 'Да'),
-                 ('fio_', 'Нет')],
+                [('Да', 'fio_1'),
+                 ('Нет', 'fio_2')],
                 row_width=2
             )
             user.update({
@@ -140,12 +140,12 @@ def send_menu1(call, user, menui):
     text += generate_menu_text(user)
     send_keyboard(
         call,
-        'Выберите блюдо',
-        [(f'{menui}_', f'{m[1]} {m[2]} ₽') for m in menu_dict[menui]] +
+        text,
+        [(f'{m[1]} {m[2]} ₽', f'{menui}_{m[0]}') for m in menu_dict[menui]] +
         # [('menu1_', f'{m[0]}') for m in menu1_list] +
-        [(f'{menui}_clear_', 'Сбросить выбор'),
-         (f'{menui}_next_', 'Далее'),
-         (f'{menui}_done_', 'Завершить выбор')],
+        [('Сбросить выбор', f'{menui}_clear_'),
+         ('Далее', f'{menui}_next_'),
+         ('Завершить выбор', f'{menui}_done_')],
         row_width=1
     )
 
@@ -191,7 +191,7 @@ def not_done_menu(call, user, item, menui):
     # edit_menu_text = edit_menu1_text
     # for m in menu_list:
     for m in menu_dict['list']:
-        if item in m[1]:
+        if item in m[0]:
         # if item in m[0]:
             user['menu_list'] = user.get('menu_list', []) + [m]
             user['menu_bill'] = user.get('menu_bill', 0) + m[2]
@@ -234,7 +234,7 @@ def edit_menu2_text(call, text, message_id):
 def construct_order_text(user):
     text = ''
     text += user.get('fio') + '\n'
-    text += user.get("tour") + '\n\n'
+    text += user.get("tour") + '\n'
 
     text += generate_menu_text(user)
     # for m in user.get('menu1', []) + user.get('menu2', []):
@@ -250,19 +250,19 @@ def send_confirm(call, user):
     send_keyboard(
         call,
         text,
-        [('fin_', 'Да'),
-         ('fin_', 'Нет')],
+        [('Да', 'fin_1'),
+         ('Нет', 'fin_2')],
         row_width=2
     )
 
 
 def process_fio(call, user):
     item = call.data.split('_')[1]
-    if 'Да' in item:
+    if '1' in item:
         send_keyboard(
             call,
             'Выберите тур',
-            [('tour_', t) for t in tour_list],
+            [(t[1], f'tour_{t[0]}') for t in tour_list],
             row_width=1
         )
     else:
@@ -273,8 +273,8 @@ def process_fio(call, user):
 def process_tour(call, user):
     tour = call.data.split('_')[1]
     for t in tour_list:
-        if tour in t:
-            user.update({'tour': t})
+        if tour in t[0]:
+            user.update({'tour': t[1]})
             break
     # photo = open('menu.jpg', 'rb')
     # bot.send_photo(
@@ -378,12 +378,12 @@ def process_menu2(call, user):
 
 def process_fin(call, user):
     item = call.data.split('_')[1]
-    if 'Да' in item:
+    if '1' in item:
         user.update({'confirm': item})
         send_keyboard(
             call,
             'Выберите способ оплаты',
-            [('pay_', m) for m in payment_list],
+            [(m[1], f'pay_{m[0]}') for m in payment_list],
             row_width=1
         )
     else:
@@ -394,8 +394,8 @@ def process_fin(call, user):
 def process_pay(call, user):
     item = call.data.split('_')[1]
     for p in payment_list:
-        if item in p:
-            user.update({'payment': p})
+        if item in p[0]:
+            user.update({'payment': p[1]})
     text = 'Спасибо! Ваш заказ будет ждать вас!\n\n'
     text += construct_order_text(user)
     text += f'\nСпособ оплаты: {user["payment"]}'
