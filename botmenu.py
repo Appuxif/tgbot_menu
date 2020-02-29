@@ -289,7 +289,7 @@ def process_tour(call, user):
     #     )
     #
     # )
-    send_menu1(call, 'menu1')
+    send_menu1(call, user, 'menu1')
     # send_keyboard(
     #     call,
     #     'Выберите блюдо',
@@ -337,7 +337,7 @@ def process_menu1(call, user):
         if user['menu'] < menu_dict['menus']:
             user['menu'] += 1
             menui = f'menu{user["menu"]}'
-            send_menu1(call, menui)
+            send_menu1(call, user, menui)
         else:
             send_confirm(call, user)
             # if user.get('menu1', []) or user.get('menu2', []):
