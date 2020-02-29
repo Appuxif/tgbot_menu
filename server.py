@@ -7,6 +7,8 @@ import sys
 from datetime import datetime
 from aiohttp import web
 
+import telebot
+
 from botmenu import bot
 from config import (
     WEBHOOK_HOST,
@@ -47,7 +49,7 @@ async def control(request):
     return web.Response(text=str(request.query))
 
 
-app.router.add_get('/control/', control)
+app.router.add_get('/control', control)
 app.router.add_post('/{token}/', handle)
 
 # Set webhook
