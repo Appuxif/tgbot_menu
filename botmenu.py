@@ -273,7 +273,7 @@ def process_fio(call, user):
 def process_tour(call, user):
     tour = call.data.split('_')[1]
     for t in tour_list:
-        if tour in t[0]:
+        if tour == t[0]:
             user.update({'tour': t[1]})
             break
     # photo = open('menu.jpg', 'rb')
