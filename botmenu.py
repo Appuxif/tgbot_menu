@@ -160,6 +160,7 @@ def edit_menu2_text(call, text, message_id):
 
 def construct_order_text(user):
     text = ''
+    text += user.get('fio') + '\n'
     text += user.get("tour") + '\n\n'
 
     for m in user.get('menu1', []) + user.get('menu2', []):
