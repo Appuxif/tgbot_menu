@@ -67,7 +67,7 @@ def edit_keyboard(msg, text, edit_message_id, buttons, row_width=2):
 # Обработчик всех входящих сообщений
 def listener(messages):
     for msg in messages:
-        # user = users.get(msg.from_user.id)
+        user = users.get(msg.from_user.id)
         # print(users)
         # if user is None:
         #     user = {}
@@ -78,14 +78,19 @@ def listener(messages):
               f'[{msg.chat.id}:{msg.from_user.id}]: {msg.text}')
 
         if '/start' in msg.text:
-            user = {}
+            user = {'state': 'wait_for_fio'}
             users.update({msg.from_user.id: user})
+            bot.send_message(msg.from_user.id, 'Введите ФИО')
+        elif user is not None and 'wait_for_fio' in user.get('state', ''):
+            user['fio'] = msg.text
             send_keyboard(
                 msg,
-                'Выберите тур',
-                [('tour_', t) for t in tour_list],
-                row_width=1
+                f'Ваше ФИО: {msg.text}\nПродолжаем?',
+                [('fio_', 'Да'),
+                 ('fio_', 'Нет')],
+                row_width=2
             )
+            user.update({'state': None})
 
 
 def send_menu1(call):
@@ -176,13 +181,27 @@ def send_confirm(call, user):
     )
 
 
+def process_fio(call, user):
+    item = call.data.split('_')[1]
+    if 'Да' in item:
+        send_keyboard(
+            call,
+            'Выберите тур',
+            [('tour_', t) for t in tour_list],
+            row_width=1
+        )
+    else:
+        bot.send_message(call.from_user.id, 'Вы не подтвердили ФИО. Заказ сброшен. \n'
+                                            'Введите /start, чтобы начать заново')
+
+
 def process_tour(call, user):
     tour = call.data.split('_')[1]
     for t in tour_list:
         if tour in t:
             user.update({'tour': t})
             break
-    photo = open('menu.jpg', 'rb')
+    # photo = open('menu.jpg', 'rb')
     # bot.send_photo(
     #     call.from_user.id,
     #     photo,
@@ -298,6 +317,8 @@ def callback_query(call):
     print(users)
     if user is None:
         bot.send_message(call.from_user.id, 'Произошла ошибка. \nВведите /start, чтобы начать заново')
+    elif call.data.startswith('fio_'):
+        process_fio(call, user)
 
     elif call.data.startswith('tour_'):
         process_tour(call, user)
