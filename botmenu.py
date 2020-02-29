@@ -181,7 +181,7 @@ def process_tour(call, user):
         if tour in t:
             user.update({'tour': t})
             break
-    photo = open('menu.jpg')
+    photo = open('menu.jpg', 'rb')
     bot.send_photo(
         call.from_user.id,
         photo,
