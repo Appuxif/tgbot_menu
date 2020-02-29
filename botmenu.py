@@ -71,9 +71,11 @@ def get_menu_dict():
     if data:
         i = 1
         menu_dict[f'menu{i}'] = []
+        menu_dict['list'] = []
         for d in data['data']:
             if d['item']:
                 menu_dict[f'menu{i}'].append((d['number'], d['item'], int(d['cost'][:-1])))
+                menu_dict['list'].append((d['number'], d['item'], int(d['cost'][:-1])))
             else:
                 i += 1
                 menu_dict[f'menu{i}'] = []
@@ -140,6 +142,7 @@ def send_menu1(call, menui):
         [(f'{menui}_', f'{m[1]} {m[2]} ₽') for m in menu_dict[menui]] +
         # [('menu1_', f'{m[0]}') for m in menu1_list] +
         [(f'{menui}_clear_', 'Сбросить выбор'),
+         (f'{menui}_next_', 'Далее'),
          (f'{menui}_done_', 'Завершить выбор')],
         row_width=1
     )
@@ -154,6 +157,7 @@ def edit_menu1_text(call, text, message_id, menui):
         # [(f'{menui}_', f'{m[1]} {m[2]} ₽') for m in menu1_list] +
         # [('menu1_', f'{m[0]}') for m in menu1_list] +
         [(f'{menui}_clear_', 'Сбросить выбор'),
+         (f'{menui}_next_', 'Далее'),
          (f'{menui}_done_', 'Завершить выбор')],
         row_width=1
     )
@@ -161,18 +165,22 @@ def edit_menu1_text(call, text, message_id, menui):
 
 def not_done_menu(call, user, item, menui):
     # menu_list = menu1_list if menu == 'menu1' else menu2_list
-    menu_list = menu_dict[menui]
+    # menu_list = menu_dict['list']
+    # for key in menu_dict:
+    #     for item in menu_dict[key]:
+    #         menu_list.append(item)
     # edit_menu_text = edit_menu1_text if menu == 'menu1' else edit_menu2_text
     # edit_menu_text = edit_menu1_text
-    for m in menu_list:
+    # for m in menu_list:
+    for m in menu_dict['list']:
         if item in m[1]:
         # if item in m[0]:
-            user[menui] = user.get(menui, []) + [m]
-            user[menui + '_bill'] = user.get(menui + '_bill', 0) + m[2]
+            user['menu_list'] = user.get('menu_list', []) + [m]
+            user['menu_bill'] = user.get('menu_bill', 0) + m[2]
             text_list = call.message.text.splitlines()
             text = '\n'.join(text_list[:-1]) + '\n'
             text += f"{m[1]} {m[2]} ₽"
-            text += f"\nСумма: {user.get(menui + '_bill', 0)} ₽"
+            text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
             # edit_menu_text(call, text, call.message.message_id, menui)
             edit_menu1_text(call, text, call.message.message_id, menui)
             break
@@ -299,14 +307,12 @@ def process_menu1(call, user):
     if f'{menui}_clear_' in call.data:
         delete = False
         user[menui] = []
-        user[f'{menui}_bill'] = 0
+        # user[f'{menui}_bill'] = 0
+        user[f'menu_bill'] = 0
         if msg.text != 'Выберите блюдо':
             edit_menu1_text(call, 'Выберите блюдо', msg.message_id, menui)
-    elif f'{menui}_done_' not in call.data:
-        delete = False
-        not_done_menu(call, user, item, menui)
-    else:
-        if user['menu'] <= menu_dict['menus']:
+    elif f'{menui}_next_' in call.data:
+        if user['menu'] < menu_dict['menus']:
             user['menu'] += 1
             menui = f'menu{user["menu"]}'
             send_menu1(call, menui)
@@ -318,6 +324,11 @@ def process_menu1(call, user):
             #     bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
             #                                         'Введите /start, чтобы начать заново')
         # send_menu2(call)
+    elif f'{menui}_done_' in call.data:
+        send_confirm(call, user)
+    else:
+        delete = False
+        not_done_menu(call, user, item, menui)
     return delete
 
 
