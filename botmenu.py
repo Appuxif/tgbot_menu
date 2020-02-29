@@ -157,12 +157,11 @@ def edit_menu1_text(call, user, message_id, menui):
         call,
         text,
         message_id,
-        [(f'{menui}_', f'{m[1]} {m[2]} ₽') for m in menu_dict[menui]] +
-        # [(f'{menui}_', f'{m[1]} {m[2]} ₽') for m in menu1_list] +
+        [(f'{m[1]} {m[2]} ₽', f'{menui}_{m[0]}') for m in menu_dict[menui]] +
         # [('menu1_', f'{m[0]}') for m in menu1_list] +
-        [(f'{menui}_clear_', 'Сбросить выбор'),
-         (f'{menui}_next_', 'Далее'),
-         (f'{menui}_done_', 'Завершить выбор')],
+        [('Сбросить выбор', f'{menui}_clear_'),
+         ('Далее', f'{menui}_next_'),
+         ('Завершить выбор', f'{menui}_done_')],
         row_width=1
     )
 
