@@ -73,7 +73,7 @@ def get_menu_dict():
         menu_dict[f'menu{i}'] = []
         for d in data['data']:
             if d['item']:
-                menu_dict[f'menu{i}'].append((d['number'], d['item'], d['cost'][:-1]))
+                menu_dict[f'menu{i}'].append((d['number'], d['item'], int(d['cost'][:-1])))
             else:
                 i += 1
                 menu_dict[f'menu{i}'] = []
