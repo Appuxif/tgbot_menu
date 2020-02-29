@@ -335,6 +335,7 @@ def process_tour(call, user):
     #     )
     #
     # )
+    bot.send_photo(call.from_user.id, open('menu.jpg', 'rb'), caption='Ознакомтесь с меню')
     send_menu1(call, user)
     # send_keyboard(
     #     call,
