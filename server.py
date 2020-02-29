@@ -68,7 +68,7 @@ context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)
 
 
 # Start aiohttp server
-async def startHTTP():
+def startHTTP():
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, WEBHOOK_LISTEN, WEBHOOK_PORT)
