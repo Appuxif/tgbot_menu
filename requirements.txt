@@ -1,0 +1,7 @@
+pyTelegramBotAPI==3.6.7
+requests==2.22.0
+urllib3==1.25.3
+PySocks==1.7.1
+pymongo==3.10.1
+aiohttp==3.5.4
+gunicorn==19.9.0
