@@ -80,15 +80,12 @@ def listener(messages):
         if '/start' in msg.text:
             user = {}
             users.update({msg.from_user.id: user})
-            message = send_keyboard(
+            send_keyboard(
                 msg,
                 'Выберите тур',
                 [('tour_', t) for t in tour_list],
                 row_width=1
             )
-
-        # user = get_user_from_db(msg)
-        # process_step(msg, user)
 
 
 def send_menu1(call):
@@ -216,7 +213,11 @@ def process_menu2(call, user):
         delete = False
         not_done_menu(call, user, item, 'menu2')
     else:
-        send_confirm(call, user)
+        if user.get('menu1', []) or user.get('menu2', []):
+            send_confirm(call, user)
+        else:
+            bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
+                                                'Введите /start, чтобы начать заново')
     return delete
 
 
