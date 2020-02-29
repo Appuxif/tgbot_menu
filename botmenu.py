@@ -150,7 +150,8 @@ def send_menu1(call, user, menui):
     )
 
 
-def edit_menu1_text(call, user, message_id, menui):
+def edit_menu1_text(call, user, message_id):
+    menui = f'menu{user["menu"]}'
     text = 'Выберите блюдо\n'
     text += generate_menu_text(user)
     edit_keyboard(
@@ -201,7 +202,7 @@ def not_done_menu(call, user, item, menui):
             # text += f"{m[1]} {m[2]} ₽"
             # text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
             # edit_menu_text(call, text, call.message.message_id, menui)
-            edit_menu1_text(call, user, call.message.message_id, menui)
+            edit_menu1_text(call, user, call.message.message_id)
             break
 
 
@@ -327,11 +328,11 @@ def process_menu1(call, user):
     if f'{menui}_clear_' in call.data:
         delete = False
         # user[menui] = []
+        user['menu'] = 1
         user['menu_list'] = []
-        # user[f'{menui}_bill'] = 0
         user[f'menu_bill'] = 0
         if msg.text != 'Выберите блюдо':
-            edit_menu1_text(call, user, msg.message_id, menui)
+            edit_menu1_text(call, user, msg.message_id)
     elif f'{menui}_next_' in call.data:
         if user['menu'] < menu_dict['menus']:
             user['menu'] += 1
