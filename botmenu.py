@@ -59,9 +59,8 @@ def get_data_from_sheet(params):
 def get_tour_list():
     global tour_list
     data = get_data_from_sheet('?getData=1')
-    print(data)
     if data:
-        tour_list = [d['schedule'] for d in data]
+        tour_list = [d['schedule'] for d in data['data']]
         print(tour_list)
 get_tour_list()
 
@@ -73,7 +72,7 @@ def get_menu_dict():
     if data:
         i = 1
         menu_dict[f'menu{i}'] = []
-        for d in data:
+        for d in data['data']:
             if d['item']:
                 menu_dict[f'menu{i}'].append((d['number'], d['item'], d['cost'][:-1]))
             else:
