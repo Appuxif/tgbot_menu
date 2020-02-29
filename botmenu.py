@@ -59,6 +59,7 @@ def get_data_from_sheet(params):
 def get_tour_list():
     global tour_list
     data = get_data_from_sheet('?getData=1')
+    print(data)
     if data:
         tour_list = [d['schedule'] for d in data]
         print(tour_list)
