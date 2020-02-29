@@ -323,11 +323,12 @@ def process_menu1(call, user):
     menui = f'menu{user["menu"]}'
     if f'{menui}_clear_' in call.data:
         delete = False
-        user[menui] = []
+        # user[menui] = []
+        user['menu_list'] = []
         # user[f'{menui}_bill'] = 0
         user[f'menu_bill'] = 0
         if msg.text != 'Выберите блюдо':
-            edit_menu1_text(call, 'Выберите блюдо', msg.message_id, menui)
+            edit_menu1_text(call, generate_menu_text(user), msg.message_id, menui)
     elif f'{menui}_next_' in call.data:
         if user['menu'] < menu_dict['menus']:
             user['menu'] += 1
