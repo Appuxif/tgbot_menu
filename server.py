@@ -73,8 +73,8 @@ async def startHTTP():
     await runner.setup()
     site = web.TCPSite(runner, WEBHOOK_LISTEN, WEBHOOK_PORT)
     await site.start()
-
-asyncio.run(startHTTP())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(startHTTP())
 
 web.run_app(
     app,
