@@ -307,8 +307,9 @@ def process_menu1(call, user):
         not_done_menu(call, user, item, menui)
     else:
         if user['menu'] <= menu_dict['menus']:
-            send_menu1(call, menui)
             user['menu'] += 1
+            menui = f'menu{user["menu"]}'
+            send_menu1(call, menui)
         else:
             send_confirm(call, user)
             # if user.get('menu1', []) or user.get('menu2', []):
