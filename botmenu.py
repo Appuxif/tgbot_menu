@@ -114,8 +114,8 @@ def get_all():
     while data is None:
         data = get_data_from_sheet('?getData=1')
         if data:
-            tour_list = get_tour_list_from_data(data)
-            menu_dict = get_menu_dict_from_data(data)
+            tour_list = get_tour_list_from_data(data['schedule'])
+            menu_dict = get_menu_dict_from_data(data['menu'])
         else:
             print('Данные не получены')
             sleep(1)
