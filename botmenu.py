@@ -97,8 +97,8 @@ def send_menu1(call):
     send_keyboard(
         call,
         'Выберите блюдо',
-        # [('menu1_', f'{m[1]} {m[2]} ₽') for m in menu1_list] +
-        [('menu1_', f'{m[0]}') for m in menu1_list] +
+        [('menu1_', f'{m[1]} {m[2]} ₽') for m in menu1_list] +
+        # [('menu1_', f'{m[0]}') for m in menu1_list] +
         [('menu1_clear_', 'Сбросить выбор'),
          ('menu1_done_', 'Завершить выбор')],
         row_width=1
@@ -110,8 +110,8 @@ def edit_menu1_text(call, text, message_id):
         call,
         text,
         message_id,
-        # [('menu1_', f'{m[1]} {m[2]} ₽') for m in menu1_list] +
-        [('menu1_', f'{m[0]}') for m in menu1_list] +
+        [('menu1_', f'{m[1]} {m[2]} ₽') for m in menu1_list] +
+        # [('menu1_', f'{m[0]}') for m in menu1_list] +
         [('menu1_clear_', 'Сбросить выбор'),
          ('menu1_done_', 'Завершить выбор')],
         row_width=1
@@ -122,8 +122,8 @@ def not_done_menu(call, user, item, menu):
     menu_list = menu1_list if menu == 'menu1' else menu2_list
     edit_menu_text = edit_menu1_text if menu == 'menu1' else edit_menu2_text
     for m in menu_list:
-        # if item in m[1]:
-        if item in m[0]:
+        if item in m[1]:
+        # if item in m[0]:
             user[menu] = user.get(menu, []) + [m]
             user[menu + '_bill'] = user.get(menu + '_bill', 0) + m[2]
             text_list = call.message.text.splitlines()
@@ -138,8 +138,8 @@ def send_menu2(call):
     send_keyboard(
         call,
         'Выберите напиток',
-        # [('menu2_', f'{m[1]} {m[2]} ₽') for m in menu2_list] +
-        [('menu2_', f'{m[0]}') for m in menu2_list] +
+        [('menu2_', f'{m[1]} {m[2]} ₽') for m in menu2_list] +
+        # [('menu2_', f'{m[0]}') for m in menu2_list] +
         [('menu2_clear_', 'Сбросить выбор'),
          ('menu2_done_', 'Завершить выбор')],
         row_width=1
@@ -151,7 +151,8 @@ def edit_menu2_text(call, text, message_id):
         call,
         text,
         message_id,
-        [('menu2_', f'{m[0]}') for m in menu2_list] +
+        [('menu2_', f'{m[1]} {m[2]} ₽') for m in menu2_list] +
+        # [('menu2_', f'{m[0]}') for m in menu2_list] +
         [('menu2_clear_', 'Сбросить выбор'),
          ('menu2_done_', 'Завершить выбор')],
         row_width=1
