@@ -67,24 +67,25 @@ def edit_keyboard(msg, text, edit_message_id, buttons, row_width=2):
 # Обработчик всех входящих сообщений
 def listener(messages):
     for msg in messages:
-        user = users.get(msg.from_user.id)
-        print(users)
-        if user is None:
-            user = {}
-            users.update({msg.from_user.id: user})
-            print('Новый пользователь')
+        # user = users.get(msg.from_user.id)
+        # print(users)
+        # if user is None:
+        #     user = {}
+        #     users.update({msg.from_user.id: user})
+        #     print('Новый пользователь')
 
         print(f'{msg.message_id} {msg.chat.username}:{msg.from_user.first_name} '
               f'[{msg.chat.id}:{msg.from_user.id}]: {msg.text}')
 
         if '/start' in msg.text:
+            user = {}
+            users.update({msg.from_user.id: user})
             message = send_keyboard(
                 msg,
                 'Выберите тур',
                 [('tour_', t) for t in tour_list],
                 row_width=1
             )
-            user.update({'message_id': message.message_id})
 
         # user = get_user_from_db(msg)
         # process_step(msg, user)
