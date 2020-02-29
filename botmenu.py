@@ -61,7 +61,6 @@ def get_tour_list():
     data = get_data_from_sheet('?getData=1')
     if data:
         tour_list = [d['schedule'] for d in data['data']]
-        print(tour_list)
 get_tour_list()
 
 
@@ -109,21 +108,18 @@ def edit_keyboard(msg, text, edit_message_id, buttons, row_width=2):
 def listener(messages):
     for msg in messages:
         user = users.get(msg.from_user.id)
-        # print(users)
-        # if user is None:
-        #     user = {}
-        #     users.update({msg.from_user.id: user})
-        #     print('Новый пользователь')
 
         print(f'{msg.message_id} {msg.chat.username}:{msg.from_user.first_name} '
               f'[{msg.chat.id}:{msg.from_user.id}]: {msg.text}')
 
         if '/start' in msg.text:
-            user = {'state': 'wait_for_fio'}
+            user = {
+                'state': 'wait_for_fio',
+                'menu': 1
+            }
             users.update({msg.from_user.id: user})
             bot.send_message(msg.from_user.id, 'Введите ФИО')
         elif user is not None and 'wait_for_fio' in user.get('state', ''):
-            user['fio'] = msg.text
             send_keyboard(
                 msg,
                 f'Ваше ФИО: {msg.text}\nПродолжаем?',
@@ -131,17 +127,20 @@ def listener(messages):
                  ('fio_', 'Нет')],
                 row_width=2
             )
-            user.update({'state': None})
+            user.update({
+                'fio': msg.text,
+                'state': None
+            })
 
 
-def send_menu1(call):
+def send_menu1(call, menui):
     send_keyboard(
         call,
         'Выберите блюдо',
-        [('menu1_', f'{m[1]} {m[2]} ₽') for m in menu1_list] +
+        [(f'{menui}_', f'{m[1]} {m[2]} ₽') for m in menu_dict[menui]] +
         # [('menu1_', f'{m[0]}') for m in menu1_list] +
-        [('menu1_clear_', 'Сбросить выбор'),
-         ('menu1_done_', 'Завершить выбор')],
+        [(f'{menui}_clear_', 'Сбросить выбор'),
+         (f'{menui}_done_', 'Завершить выбор')],
         row_width=1
     )
 
@@ -257,7 +256,7 @@ def process_tour(call, user):
     #     )
     #
     # )
-    send_menu1(call)
+    send_menu1(call, 'menu1')
     # send_keyboard(
     #     call,
     #     'Выберите блюдо',
@@ -274,21 +273,46 @@ def process_tour(call, user):
     # )
 
 
+def process_menu(call, user):
+    delete = True
+    if user['menu'] <= menu_dict['menus']:
+        delete = process_menu1(call, user)
+        user['menu'] += 1
+    return delete
+
+    # if call.data.startswith('menu1_'):
+    #     delete = process_menu1(call, user)
+    #
+    # elif call.data.startswith('menu2_'):
+    #     delete = process_menu2(call, user)
+
+
 def process_menu1(call, user):
     delete = True
     msg = call.message
     item = call.data.split('_')[-1]
+    menui = f'menu{user["menu"]}'
     if 'menu1_clear_' in call.data:
         delete = False
-        user['menu1'] = []
-        user['menu1_bill'] = 0
+        user[menui] = []
+        user[f'{menui}_bill'] = 0
         if msg.text != 'Выберите блюдо':
             edit_menu1_text(call, 'Выберите блюдо', msg.message_id)
-    elif 'menu1_done_' not in call.data:
+    elif f'{menui}_done_' not in call.data:
         delete = False
-        not_done_menu(call, user, item, 'menu1')
+        not_done_menu(call, user, item, menui)
     else:
-        send_menu2(call)
+        if user['menu'] <= menu_dict['menus']:
+            send_menu1(call, menui)
+            user['menu'] += 1
+        else:
+            send_confirm(call, user)
+            # if user.get('menu1', []) or user.get('menu2', []):
+            #     send_confirm(call, user)
+            # else:
+            #     bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
+            #                                         'Введите /start, чтобы начать заново')
+        # send_menu2(call)
     return delete
 
 
@@ -366,11 +390,9 @@ def callback_query(call):
     elif call.data.startswith('tour_'):
         process_tour(call, user)
 
-    elif call.data.startswith('menu1_'):
+    elif call.data.startswith('menu'):
+        # delete = process_menu(call, user)
         delete = process_menu1(call, user)
-
-    elif call.data.startswith('menu2_'):
-        delete = process_menu2(call, user)
 
     elif call.data.startswith('fin_'):
         process_fin(call, user)
