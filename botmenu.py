@@ -182,19 +182,19 @@ def process_tour(call, user):
             user.update({'tour': t})
             break
     photo = open('menu.jpg', 'rb')
-    bot.send_photo(
-        call.from_user.id,
-        photo,
-        caption='Выберите блюдо',
-        reply_markup=make_keyboard(
-            [('menu1_', f'{m[0]}') for m in menu1_list] +
-            [('menu1_clear_', 'Сбросить выбор'),
-             ('menu1_done_', 'Завершить выбор')],
-            row_width=1
-        )
-
-    )
-    # send_menu1(call)
+    # bot.send_photo(
+    #     call.from_user.id,
+    #     photo,
+    #     caption='Выберите блюдо',
+    #     reply_markup=make_keyboard(
+    #         [('menu1_', f'{m[0]}') for m in menu1_list] +
+    #         [('menu1_clear_', 'Сбросить выбор'),
+    #          ('menu1_done_', 'Завершить выбор')],
+    #         row_width=1
+    #     )
+    #
+    # )
+    send_menu1(call)
     # send_keyboard(
     #     call,
     #     'Выберите блюдо',
