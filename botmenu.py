@@ -163,6 +163,20 @@ def edit_menu1_text(call, text, message_id, menui):
     )
 
 
+def generate_menu_text(user):
+    text = ''
+    if user.get('menu_list', []):
+        text += '\n'
+        for m in user.get('menu_list', []):
+            text += f"{m[2]} {m[2]} ₽\n"
+    text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
+    return text
+    # text = '\n'.join(text_list[:-1]) + '\n'
+
+
+# text += f"{m[1]} {m[2]} ₽"
+# text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
+
 def not_done_menu(call, user, item, menui):
     # menu_list = menu1_list if menu == 'menu1' else menu2_list
     # menu_list = menu_dict['list']
@@ -177,10 +191,12 @@ def not_done_menu(call, user, item, menui):
         # if item in m[0]:
             user['menu_list'] = user.get('menu_list', []) + [m]
             user['menu_bill'] = user.get('menu_bill', 0) + m[2]
-            text_list = call.message.text.splitlines()
-            text = '\n'.join(text_list[:-1]) + '\n'
-            text += f"{m[1]} {m[2]} ₽"
-            text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
+            text = f'Выберите блюдо\n'
+            text += generate_menu_text(user)
+            # text_list = call.message.text.splitlines()
+            # text = '\n'.join(text_list[:-1]) + '\n'
+            # text += f"{m[1]} {m[2]} ₽"
+            # text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
             # edit_menu_text(call, text, call.message.message_id, menui)
             edit_menu1_text(call, text, call.message.message_id, menui)
             break
@@ -216,10 +232,11 @@ def construct_order_text(user):
     text += user.get('fio') + '\n'
     text += user.get("tour") + '\n\n'
 
-    for m in user.get('menu1', []) + user.get('menu2', []):
-        text += f"{m[1]} {m[2]} ₽\n"
+    text += generate_menu_text(user)
+    # for m in user.get('menu1', []) + user.get('menu2', []):
+    #     text += f"{m[1]} {m[2]} ₽\n"
 
-    text += f"\nСумма: {user.get('menu1_bill', 0) + user.get('menu2_bill', 0)} ₽"
+    # text += f"\nСумма: {user.get('menu1_bill', 0) + user.get('menu2_bill', 0)} ₽"
     return text
 
 
