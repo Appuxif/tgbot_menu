@@ -168,7 +168,7 @@ def generate_menu_text(user):
     if user.get('menu_list', []):
         text += '\n'
         for m in user.get('menu_list', []):
-            text += f"{m[2]} {m[2]} ₽\n"
+            text += f"{m[1]} {m[2]} ₽\n"
     text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
     return text
     # text = '\n'.join(text_list[:-1]) + '\n'
