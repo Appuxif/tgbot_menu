@@ -9,7 +9,7 @@ from aiohttp import web
 
 import telebot
 
-from botmenu import bot
+from botmenu import bot, get_menu_dict, get_tour_list, get_all
 from config import (
     WEBHOOK_HOST,
     WEBHOOK_PORT,
@@ -46,6 +46,9 @@ async def handle(request):
 
 async def control(request):
     print(request.query)
+    if 'reload' in request.query:
+        get_all()
+        print('Гугл таблица загружена')
     return web.Response(text=str(request.query))
 
 

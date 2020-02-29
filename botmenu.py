@@ -1,3 +1,5 @@
+from time import sleep
+
 import requests
 
 import telebot
@@ -55,33 +57,70 @@ def get_data_from_sheet(params):
     return None
 
 
+def get_tour_list_from_data(data):
+    return [(d['index'], d['schedule']) for d in data['data']]
+
+
 # Скачивает список туров из гугл таблицы
 def get_tour_list():
     global tour_list
-    data = get_data_from_sheet('?getData=1')
-    if data:
-        tour_list = [(d['index'], d['schedule']) for d in data['data']]
-get_tour_list()
+    data = None
+    while data is None:
+        data = get_data_from_sheet('?getData=1')
+        if data:
+            tour_list = get_tour_list_from_data(data)
+            # print(tour_list)
+        else:
+            print('Список туров не получен')
+            sleep(1)
+# get_tour_list()
+
+
+def get_menu_dict_from_data(data):
+    i = 1
+    menu_dict[f'menu{i}'] = []
+    menu_dict['list'] = []
+    for d in data['data']:
+        if d['item']:
+            menu_dict[f'menu{i}'].append((d['number'], d['item'], int(d['cost'][:-1])))
+            menu_dict['list'].append((d['number'], d['item'], int(d['cost'][:-1])))
+        else:
+            i += 1
+            menu_dict[f'menu{i}'] = []
+    menu_dict['menus'] = i
+    return menu_dict
 
 
 # Скачивает меню из гугл таблицы
 def get_menu_dict():
     global menu_dict
-    data = get_data_from_sheet('?getData=2')
-    if data:
-        i = 1
-        menu_dict[f'menu{i}'] = []
-        menu_dict['list'] = []
-        for d in data['data']:
-            if d['item']:
-                menu_dict[f'menu{i}'].append((d['number'], d['item'], int(d['cost'][:-1])))
-                menu_dict['list'].append((d['number'], d['item'], int(d['cost'][:-1])))
-            else:
-                i += 1
-                menu_dict[f'menu{i}'] = []
-        menu_dict['menus'] = i
-get_menu_dict()
+    data = None
+    while data is None:
+        data = get_data_from_sheet('?getData=2')
+        if data:
+            menu_dict = get_menu_dict_from_data(data)
+        else:
+            print('Список меню не получен')
+            sleep(1)
+# get_menu_dict()
+# print('Гугл таблица загружена')
 
+
+# Скачивает все доступные данные с гугл таблицы
+def get_all():
+    global menu_dict
+    global tour_list
+    data = get_data_from_sheet('?getAll=1')
+    while data is None:
+        data = get_data_from_sheet('?getData=1')
+        if data:
+            tour_list = get_tour_list_from_data(data)
+            menu_dict = get_menu_dict_from_data(data)
+        else:
+            print('Данные не получены')
+            sleep(1)
+get_all()
+print('Гугл таблица загружена')
 
 # Возвращает объект клавиатуры для телеграма
 def make_keyboard(buttons, row_width=2):
@@ -135,34 +174,36 @@ def listener(messages):
             })
 
 
-def send_menu1(call, user, menui):
+def get_menu_buttons(user):
+    menui = f'menu{user["menu"]}'
+
+    buttons = [(f'{m[1]} {m[2]} ₽', f'{menui}_{m[0]}') for m in menu_dict[menui]]
+    buttons += [('Сбросить выбор', f'{menui}_clear_')]
+    if user['menu'] < menu_dict['menus']:
+        buttons += [('Далее', f'{menui}_next_')]
+    buttons += [('Завершить выбор', f'{menui}_done_')]
+    return buttons
+
+
+def send_menu1(call, user):
     text = 'Выберите блюдо\n'
     text += generate_menu_text(user)
     send_keyboard(
         call,
         text,
-        [(f'{m[1]} {m[2]} ₽', f'{menui}_{m[0]}') for m in menu_dict[menui]] +
-        # [('menu1_', f'{m[0]}') for m in menu1_list] +
-        [('Сбросить выбор', f'{menui}_clear_'),
-         ('Далее', f'{menui}_next_'),
-         ('Завершить выбор', f'{menui}_done_')],
+        get_menu_buttons(user),
         row_width=1
     )
 
 
 def edit_menu1_text(call, user, message_id):
-    menui = f'menu{user["menu"]}'
     text = 'Выберите блюдо\n'
     text += generate_menu_text(user)
     edit_keyboard(
         call,
         text,
         message_id,
-        [(f'{m[1]} {m[2]} ₽', f'{menui}_{m[0]}') for m in menu_dict[menui]] +
-        # [('menu1_', f'{m[0]}') for m in menu1_list] +
-        [('Сбросить выбор', f'{menui}_clear_'),
-         ('Далее', f'{menui}_next_'),
-         ('Завершить выбор', f'{menui}_done_')],
+        get_menu_buttons(user),
         row_width=1
     )
 
@@ -181,7 +222,7 @@ def generate_menu_text(user):
 # text += f"{m[1]} {m[2]} ₽"
 # text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
 
-def not_done_menu(call, user, item, menui):
+def not_done_menu(call, user, item):
     # menu_list = menu1_list if menu == 'menu1' else menu2_list
     # menu_list = menu_dict['list']
     # for key in menu_dict:
@@ -245,15 +286,19 @@ def construct_order_text(user):
 
 
 def send_confirm(call, user):
-    text = 'Подтвердите выбор\n\n'
-    text += construct_order_text(user)
-    send_keyboard(
-        call,
-        text,
-        [('Да', 'fin_1'),
-         ('Нет', 'fin_2')],
-        row_width=2
-    )
+    if user.get('menu_list', []):
+        text = 'Подтвердите выбор\n\n'
+        text += construct_order_text(user)
+        send_keyboard(
+            call,
+            text,
+            [('Да', 'fin_1'),
+             ('Нет', 'fin_2')],
+            row_width=2
+        )
+    else:
+        bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
+                                            'Введите /start, чтобы начать заново')
 
 
 def process_fio(call, user):
@@ -273,7 +318,7 @@ def process_fio(call, user):
 def process_tour(call, user):
     tour = call.data.split('_')[1]
     for t in tour_list:
-        if tour == t[0]:
+        if int(tour) == t[0]:
             user.update({'tour': t[1]})
             break
     # photo = open('menu.jpg', 'rb')
@@ -289,7 +334,7 @@ def process_tour(call, user):
     #     )
     #
     # )
-    send_menu1(call, user, 'menu1')
+    send_menu1(call, user)
     # send_keyboard(
     #     call,
     #     'Выберите блюдо',
@@ -306,12 +351,12 @@ def process_tour(call, user):
     # )
 
 
-def process_menu(call, user):
-    delete = True
-    if user['menu'] <= menu_dict['menus']:
-        delete = process_menu1(call, user)
-        user['menu'] += 1
-    return delete
+# def process_menu(call, user):
+#     delete = True
+#     if user['menu'] <= menu_dict['menus']:
+#         delete = process_menu1(call, user)
+#         user['menu'] += 1
+#     return delete
 
     # if call.data.startswith('menu1_'):
     #     delete = process_menu1(call, user)
@@ -337,43 +382,38 @@ def process_menu1(call, user):
         if user['menu'] < menu_dict['menus']:
             user['menu'] += 1
             menui = f'menu{user["menu"]}'
-            send_menu1(call, user, menui)
+            send_menu1(call, user)
         else:
             send_confirm(call, user)
-            # if user.get('menu1', []) or user.get('menu2', []):
-            #     send_confirm(call, user)
-            # else:
-            #     bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
-            #                                         'Введите /start, чтобы начать заново')
         # send_menu2(call)
     elif f'{menui}_done_' in call.data:
         send_confirm(call, user)
     else:
         delete = False
-        not_done_menu(call, user, item, menui)
+        not_done_menu(call, user, item)
     return delete
 
 
-def process_menu2(call, user):
-    delete = True
-    msg = call.message
-    item = call.data.split('_')[1]
-    if 'menu2_clear_' in call.data:
-        delete = False
-        user['menu2'] = []
-        user['menu2_bill'] = 0
-        if msg.text != 'Выберите напиток':
-            edit_menu2_text(call, 'Выберите напиток', msg.message_id)
-    elif 'menu2_done_' not in call.data:
-        delete = False
-        not_done_menu(call, user, item, 'menu2')
-    else:
-        if user.get('menu1', []) or user.get('menu2', []):
-            send_confirm(call, user)
-        else:
-            bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
-                                                'Введите /start, чтобы начать заново')
-    return delete
+# def process_menu2(call, user):
+#     delete = True
+#     msg = call.message
+#     item = call.data.split('_')[1]
+#     if 'menu2_clear_' in call.data:
+#         delete = False
+#         user['menu2'] = []
+#         user['menu2_bill'] = 0
+#         if msg.text != 'Выберите напиток':
+#             edit_menu2_text(call, 'Выберите напиток', msg.message_id)
+#     elif 'menu2_done_' not in call.data:
+#         delete = False
+#         not_done_menu(call, user, item, 'menu2')
+#     else:
+#         if user.get('menu1', []) or user.get('menu2', []):
+#             send_confirm(call, user)
+#         else:
+#             bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
+#                                                 'Введите /start, чтобы начать заново')
+#     return delete
 
 
 def process_fin(call, user):
