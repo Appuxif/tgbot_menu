@@ -456,6 +456,8 @@ def process_pay(call, user):
         text,
         disable_web_page_preview=True
     )
+    user['tg'] = f"{call.from_user.id} {call.from_user.username} " \
+                 f"{call.from_user.first_name} {call.from_user.last_name}"
     send_order_to_table(user)
 
 
@@ -465,7 +467,8 @@ def send_order_to_table(user):
              f'&tour={quote_plus(user["tour"][:20] + "...")}' \
              f'&fio={quote_plus(user["fio"])}' \
              f'&bill={quote_plus(user["menu_bill"])}' \
-             f'&payment={quote_plus(user["payment"])}'
+             f'&payment={quote_plus(user["payment"])}' \
+             f'&tg={quote_plus(user["tg"])}'
     for m in user['menu_list']:
         params += f'&list={quote_plus(m[1])}'
     data = get_data_from_sheet(params)
