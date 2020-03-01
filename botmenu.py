@@ -181,9 +181,16 @@ def send_menu_photo(call, user):
 def send_menu1(call, user):
     text = 'Выберите блюдо\n'
     text += generate_menu_text(user)
-    send_keyboard(
+    # send_keyboard(
+    #     call,
+    #     text,
+    #     get_menu_buttons(user),
+    #     row_width=1
+    # )
+    edit_keyboard(
         call,
         text,
+        call.message.message_id,
         get_menu_buttons(user),
         row_width=1
     )
