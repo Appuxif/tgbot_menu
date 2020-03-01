@@ -14,6 +14,7 @@ from config import (
     WEBHOOK_HOST,
     WEBHOOK_PORT,
     WEBHOOK_LISTEN,
+    WEBHOOK_LISTEN_PORT,
     # WEBHOOK_SSL_CERT,
     # WEBHOOK_SSL_PRIV
 )
@@ -79,6 +80,6 @@ bot.set_webhook(
 web.run_app(
     app,
     host=WEBHOOK_LISTEN,
-    port=WEBHOOK_PORT,
+    port=WEBHOOK_LISTEN_PORT,
     # ssl_context=context,
 )
