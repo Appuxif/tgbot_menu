@@ -277,7 +277,7 @@ def process_tour(call, user):
 
 def process_photo(call, user):
     send_menu1(call, user)
-    return False
+    return True
 
 
 def process_menu1(call, user):
