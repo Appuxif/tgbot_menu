@@ -14,8 +14,8 @@ from config import (
     WEBHOOK_HOST,
     WEBHOOK_PORT,
     WEBHOOK_LISTEN,
-    WEBHOOK_SSL_CERT,
-    WEBHOOK_SSL_PRIV
+    # WEBHOOK_SSL_CERT,
+    # WEBHOOK_SSL_PRIV
 )
 
 # Quick'n'dirty SSL certificate generation:
@@ -59,12 +59,12 @@ app.router.add_post('/{token}/', handle)
 bot.remove_webhook()
 bot.set_webhook(
     url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-    certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me on Heroku
+    # certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me on Heroku
 )
 
 # Build ssl context
-context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)
+# context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+# context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)
 
 
 # Start aiohttp server
@@ -80,5 +80,5 @@ web.run_app(
     app,
     host=WEBHOOK_LISTEN,
     port=WEBHOOK_PORT,
-    ssl_context=context,
+    # ssl_context=context,
 )
