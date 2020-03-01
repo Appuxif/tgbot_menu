@@ -124,6 +124,7 @@ def edit_keyboard(msg, text, edit_message_id, buttons, row_width=2):
     bot.edit_message_text(text, msg.from_user.id, edit_message_id, reply_markup=make_keyboard(buttons, row_width))
 
 
+
 # Обработчик всех входящих сообщений
 def listener(messages):
     for msg in messages:
@@ -170,27 +171,23 @@ def send_menu_photo(call, user):
     bot.send_photo(
         call.from_user.id,
         open('menu.jpg', 'rb'),
-        caption='Ознакомтесь с меню',
-        reply_markup=make_keyboard(
-            [('Отлично, пора выбирать!', 'photo_done')],
-            row_width=1
-        )
+        # caption='Ознакомтесь с меню',
+    )
+    send_keyboard(
+        call,
+        # "Готовы?",
+        'Ознакомтесь с меню',
+        [('Отлично, пора выбирать!', 'photo_done')],
+        row_width=1
     )
 
 
 def send_menu1(call, user):
     text = 'Выберите блюдо\n'
     text += generate_menu_text(user)
-    # send_keyboard(
-    #     call,
-    #     text,
-    #     get_menu_buttons(user),
-    #     row_width=1
-    # )
-    edit_keyboard(
+    send_keyboard(
         call,
         text,
-        call.message.message_id,
         get_menu_buttons(user),
         row_width=1
     )
