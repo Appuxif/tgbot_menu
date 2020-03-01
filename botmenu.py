@@ -273,7 +273,7 @@ def process_tour(call, user):
 
 def process_photo(call, user):
     send_menu1(call, user)
-    pass
+    return False
 
 
 def process_menu1(call, user):
@@ -380,7 +380,7 @@ def callback_query(call):
         process_tour(call, user)
 
     elif call.data.startswith('photo_'):
-        process_photo(call, user)
+        delete = process_photo(call, user)
 
     elif call.data.startswith('menu'):
         delete = process_menu1(call, user)
