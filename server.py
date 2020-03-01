@@ -59,7 +59,7 @@ app.router.add_post('/{token}/', handle)
 bot.remove_webhook()
 bot.set_webhook(
     url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-    certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me
+    certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me on Heroku
 )
 
 # Build ssl context

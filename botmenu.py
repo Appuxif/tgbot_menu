@@ -1,11 +1,11 @@
+from urllib.parse import quote_plus, quote
 from time import sleep
-
 import requests
 
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from config import sheet_api_url
+from config import sheet_api_url, ya_money_url
 telebot.apihelper.proxy = {'https': 'http://52.15.172.134:7778'}
 token = '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4'
 bot = telebot.TeleBot(token)
@@ -43,7 +43,7 @@ menu_dict = {}
 
 payment_list = [
     ('0', 'Лично курьеру'),
-    ('1', 'Что-то еще')
+    ('1', 'Оплата через Yandex деньги')
 ]
 
 users = {}
@@ -160,7 +160,7 @@ def listener(messages):
                 'menu': 1
             }
             users.update({msg.from_user.id: user})
-            bot.send_message(msg.from_user.id, 'Введите ФИО')
+            bot.send_message(msg.from_user.id, 'Введите ФИО, чтобы мы смогли отдать вам ваш заказ')
         elif user is not None and 'wait_for_fio' in user.get('state', ''):
             send_keyboard(
                 msg,
@@ -171,7 +171,7 @@ def listener(messages):
             )
             user.update({
                 'fio': msg.text,
-                'state': None
+                'state': ''
             })
 
 
@@ -438,17 +438,47 @@ def process_pay(call, user):
     for p in payment_list:
         if item in p[0]:
             user.update({'payment': p[1]})
-    text = 'Спасибо! Ваш заказ будет ждать вас!\n\n'
-    text += construct_order_text(user)
-    text += f'\nСпособ оплаты: {user["payment"]}'
+    if item == '0':
+        text = 'Спасибо! Ваш заказ будет ждать вас!\n\n'
+        text += construct_order_text(user)
+        text += f'\nСпособ оплаты: {user["payment"]}'
+    elif item == '1':
+        text = 'Спасибо! Вы выбрали оплату через Yandex деньги. ' \
+               'Произведите оплату и тогда ваш заказ будет ждать вас!\n\n'
+        text += construct_order_text(user)
+        text += f'\nСпособ оплаты: {user["payment"]}'
+        text += f'\nСсылка для оплаты: {ya_money_url}{user["menu_bill"]}'
+        text += f'\nВ поле "Комментарий" обязательно укажите ФИО, чтобы мы смогли вас идентифицировать'
     text += '\n\nПо всем вопросам обращайтесь по телефону: 2-555-222\n' \
             'Для нового заказа введите /start'
     bot.send_message(
         call.from_user.id,
-        text
+        text,
+        disable_web_page_preview=True
     )
-    print(user)
-    # TODO: Отправка заказа в таблицу
+    send_order_to_table(user)
+
+
+def send_order_to_table(user):
+    user["menu_bill"] = str(user["menu_bill"])
+    params = f'?addOrder=1' \
+             f'&tour={quote_plus(user["tour"][:20] + "...")}' \
+             f'&fio={quote_plus(user["fio"])}' \
+             f'&bill={quote_plus(user["menu_bill"])}' \
+             f'&payment={quote_plus(user["payment"])}'
+    for m in user['menu_list']:
+        params += f'&list={quote_plus(m[1])}'
+    data = get_data_from_sheet(params)
+    print(data)
+
+# Для тестов
+# send_order_to_table({
+#     "tour": 'фвыфывфыв',
+#     "fio": 'asdasd фывфыв',
+#     'menu_bill': 150,
+#     'payment': 'Gbplasd фывфыв',
+#     'menu_list': [('', 'asd'), ('', 'фывфыв')]
+# })
 
 
 # Функция обрабатывает нажатие кнопок на клавиатуре
