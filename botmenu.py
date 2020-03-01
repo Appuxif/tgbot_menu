@@ -21,7 +21,7 @@ menu_dict = {}
 
 payment_list = [
     ('0', 'Лично курьеру'),
-    ('1', 'Оплата через Yandex деньги')
+    ('1', 'Оплата банковской картой')
 ]
 
 users = {}
@@ -138,11 +138,11 @@ def listener(messages):
                 'menu': 1
             }
             users.update({msg.from_user.id: user})
-            bot.send_message(msg.from_user.id, 'Введите ФИО, чтобы мы смогли отдать вам ваш заказ')
+            bot.send_message(msg.from_user.id, 'Введите Фамилию и Имя, чтобы мы смогли отдать вам ваш заказ')
         elif user is not None and 'wait_for_fio' in user.get('state', ''):
             send_keyboard(
                 msg,
-                f'Ваше ФИО: {msg.text}\nПродолжаем?',
+                f'Вы ввели: {msg.text}\nПродолжаем?',
                 [('Да', 'fio_1'),
                  ('Нет', 'fio_2')],
                 row_width=2
@@ -159,11 +159,23 @@ def get_menu_buttons(user):
     menui = f'menu{user["menu"]}'
 
     buttons = [(f'{m[1]} {m[2]} ₽', f'{menui}_{m[0]}') for m in menu_dict[menui]]
-    buttons += [('Сбросить выбор', f'{menui}_clear_')]
     if user['menu'] < menu_dict['menus']:
-        buttons += [('Далее', f'{menui}_next_')]
-    buttons += [('Завершить выбор', f'{menui}_done_')]
+        buttons += [('СЛЕДУЮЩИЙ РАЗДЕЛ МЕНЮ', f'{menui}_next_')]
+    buttons += [('СБРОСИТЬ ВЫБОР', f'{menui}_clear_')]
+    buttons += [('ЗАВЕРШИТЬ ВЫБОР', f'{menui}_done_')]
     return buttons
+
+
+def send_menu_photo(call, user):
+    bot.send_photo(
+        call.from_user.id,
+        open('menu.jpg', 'rb'),
+        caption='Ознакомтесь с меню',
+        reply_markup=make_keyboard(
+            [('Отлично, пора выбирать!', 'photo_done')],
+            row_width=1
+        )
+    )
 
 
 def send_menu1(call, user):
@@ -246,7 +258,7 @@ def process_fio(call, user):
             row_width=1
         )
     else:
-        bot.send_message(call.from_user.id, 'Вы не подтвердили ФИО. Заказ сброшен. \n'
+        bot.send_message(call.from_user.id, 'Вы не подтвердили Фамилию и Имя. Заказ сброшен. \n'
                                             'Введите /start, чтобы начать заново')
 
 
@@ -256,8 +268,12 @@ def process_tour(call, user):
         if int(tour) == t[0]:
             user.update({'tour': t[1]})
             break
-    bot.send_photo(call.from_user.id, open('menu.jpg', 'rb'), caption='Ознакомтесь с меню')
+    send_menu_photo(call, user)
+
+
+def process_photo(call, user):
     send_menu1(call, user)
+    pass
 
 
 def process_menu1(call, user):
@@ -311,13 +327,13 @@ def process_pay(call, user):
         text += construct_order_text(user)
         text += f'\nСпособ оплаты: {user["payment"]}'
     else:
-        text = 'Спасибо! Вы выбрали оплату через Yandex деньги. ' \
+        text = 'Спасибо! Вы выбрали оплату банковской картой. ' \
                'Произведите оплату и тогда ваш заказ будет ждать вас!\n\n'
         text += construct_order_text(user)
         text += f'\nСпособ оплаты: {user["payment"]}'
         text += f'\nСсылка для оплаты: {ya_money_url}{user["menu_bill"]}'
-        text += f'\nВ поле "Комментарий" обязательно укажите ФИО, чтобы мы смогли вас идентифицировать'
-    text += '\n\nПо всем вопросам обращайтесь по телефону: 2-555-222\n' \
+        text += f'\nВ поле "Комментарий" обязательно укажите Фамилию и Имя, чтобы мы смогли вас идентифицировать'
+    text += '\n\nПо всем вопросам обращайтесь по телефону: +7 (950) 544-74-73\n' \
             'Для нового заказа введите /start'
     bot.send_message(
         call.from_user.id,
@@ -362,6 +378,9 @@ def callback_query(call):
 
     elif call.data.startswith('tour_'):
         process_tour(call, user)
+
+    elif call.data.startswith('photo_'):
+        process_photo(call, user)
 
     elif call.data.startswith('menu'):
         delete = process_menu1(call, user)
