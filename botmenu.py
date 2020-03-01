@@ -151,6 +151,8 @@ def listener(messages):
                 'fio': msg.text,
                 'state': ''
             })
+        else:
+            bot.send_message(msg.from_user.id, 'Чтобы оформить заказ, введите /start')
 
 
 def get_menu_buttons(user):
@@ -324,6 +326,7 @@ def process_pay(call, user):
     )
     user['tg'] = f"{call.from_user.id} {call.from_user.username} " \
                  f"{call.from_user.first_name} {call.from_user.last_name}"
+    print(user)
     send_order_to_table(user)
 
 
@@ -351,7 +354,7 @@ def callback_query(call):
           f'Кнопка {call.data} Сообщение {msg.message_id} Чат {msg.chat.id}')
 
     user = users.get(call.from_user.id)
-    print(users)
+    # print(users)
     if user is None:
         bot.send_message(call.from_user.id, 'Произошла ошибка. \nВведите /start, чтобы начать заново')
     elif call.data.startswith('fio_'):
