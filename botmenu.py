@@ -1,6 +1,8 @@
+import traceback
 from urllib.parse import quote_plus, quote
 from time import sleep
 import requests
+import sys
 
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -124,7 +126,6 @@ def edit_keyboard(msg, text, edit_message_id, buttons, row_width=2):
     bot.edit_message_text(text, msg.from_user.id, edit_message_id, reply_markup=make_keyboard(buttons, row_width))
 
 
-
 # Обработчик всех входящих сообщений
 def listener(messages):
     for msg in messages:
@@ -196,13 +197,16 @@ def send_menu1(call, user):
 def edit_menu1_text(call, user, message_id):
     text = 'Выберите блюдо\n'
     text += generate_menu_text(user)
-    edit_keyboard(
-        call,
-        text,
-        message_id,
-        get_menu_buttons(user),
-        row_width=1
-    )
+    try:
+        edit_keyboard(
+            call,
+            text,
+            message_id,
+            get_menu_buttons(user),
+            row_width=1
+        )
+    except Exception as err:
+        traceback.print_exc(file=sys.stdout)
 
 
 def generate_menu_text(user):
@@ -230,8 +234,8 @@ def not_done_menu(call, user, item):
 
 def construct_order_text(user):
     text = ''
-    text += user.get('fio') + '\n'
-    text += user.get("tour") + '\n'
+    text += user.get('fio', '') + '\n'
+    text += user.get("tour", '') + '\n'
     text += generate_menu_text(user)
     return text
 
