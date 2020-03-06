@@ -133,28 +133,31 @@ def listener(messages):
 
         print(f'{msg.message_id} {msg.chat.username}:{msg.from_user.first_name} '
               f'[{msg.chat.id}:{msg.from_user.id}]: {msg.text}')
-
-        if '/start' in msg.text:
-            user = {
-                'state': 'wait_for_fio',
-                'menu': 1
-            }
-            users.update({msg.from_user.id: user})
-            bot.send_message(msg.from_user.id, 'Введите Фамилию и Имя, чтобы мы смогли отдать вам ваш заказ')
-        elif user is not None and 'wait_for_fio' in user.get('state', ''):
-            send_keyboard(
-                msg,
-                f'Вы ввели: {msg.text}\nПродолжаем?',
-                [('Да', 'fio_1'),
-                 ('Нет', 'fio_2')],
-                row_width=2
-            )
-            user.update({
-                'fio': msg.text,
-                'state': ''
-            })
-        else:
-            bot.send_message(msg.from_user.id, 'Чтобы оформить заказ, введите /start')
+        try:
+            if '/start' in msg.text:
+                user = {
+                    'state': 'wait_for_fio',
+                    'menu': 1
+                }
+                users.update({msg.from_user.id: user})
+                bot.send_message(msg.from_user.id, 'Введите Фамилию и Имя, чтобы мы смогли отдать вам ваш заказ')
+            elif user is not None and 'wait_for_fio' in user.get('state', ''):
+                send_keyboard(
+                    msg,
+                    f'Вы ввели: {msg.text}\nПродолжаем?',
+                    [('Да', 'fio_1'),
+                     ('Нет', 'fio_2')],
+                    row_width=2
+                )
+                user.update({
+                    'fio': msg.text,
+                    'state': ''
+                })
+            else:
+                bot.send_message(msg.from_user.id, 'Чтобы оформить заказ, введите /start')
+        except Exception as err:
+            traceback.print_exc(file=sys.stdout)
+            bot.send_message(432134928, 'Ошибка в листенере')
 
 
 def get_menu_buttons(user):
@@ -378,29 +381,33 @@ def callback_query(call):
           f'Кнопка {call.data} Сообщение {msg.message_id} Чат {msg.chat.id}')
 
     user = users.get(call.from_user.id)
-    # print(users)
-    if user is None:
-        bot.send_message(call.from_user.id, 'Произошла ошибка. \nВведите /start, чтобы начать заново')
-    elif call.data.startswith('fio_'):
-        process_fio(call, user)
+    try:
+        if user is None:
+            bot.send_message(call.from_user.id, 'Произошла ошибка. \nВведите /start, чтобы начать заново')
 
-    elif call.data.startswith('tour_'):
-        process_tour(call, user)
+        elif call.data.startswith('fio_'):
+            process_fio(call, user)
 
-    elif call.data.startswith('photo_'):
-        delete = process_photo(call, user)
+        elif call.data.startswith('tour_'):
+            process_tour(call, user)
 
-    elif call.data.startswith('menu'):
-        delete = process_menu1(call, user)
+        elif call.data.startswith('photo_'):
+            delete = process_photo(call, user)
 
-    elif call.data.startswith('fin_'):
-        process_fin(call, user)
+        elif call.data.startswith('menu'):
+            delete = process_menu1(call, user)
 
-    elif call.data.startswith('pay_'):
-        process_pay(call, user)
+        elif call.data.startswith('fin_'):
+            process_fin(call, user)
 
-    if delete:
-        bot.delete_message(call.from_user.id, msg.message_id)
+        elif call.data.startswith('pay_'):
+            process_pay(call, user)
+
+        if delete:
+            bot.delete_message(call.from_user.id, msg.message_id)
+    except Exception as err:
+        traceback.print_exc(file=sys.stdout)
+        bot.send_message(432134928, 'Ошибка при нажатии на кнопку')
     bot.answer_callback_query(call.id)
 
 
