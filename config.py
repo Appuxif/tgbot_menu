@@ -8,8 +8,7 @@ ya_money_url2 = os.environ.get('YA_MONEY_URL2')
 token = os.environ.get('TOKEN', '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4')
 token2 = os.environ.get('TOKEN2', '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4')
 
-WEBHOOK_HOST = os.environ.get('HOST') + '\\' + token
-WEBHOOK_HOST2 = os.environ.get('HOST') + '\\' + token2
+WEBHOOK_HOST = os.environ.get('HOST')
 WEBHOOK_PORT = 443
 WEBHOOK_LISTEN_PORT = os.environ.get('PORT', 8443)
 WEBHOOK_LISTEN = '0.0.0.0'
