@@ -3,7 +3,7 @@ import plural_ru
 from config import ya_money_url
 from utils.bot_user_utils import update_msg_to_user, update_keyboard_to_user
 from utils.spreadsheet import send_book_to_table
-from utils.variables import register_tour_questions, tour_list, call_data_translate
+from utils.variables import register_tour_questions, call_data_translate
 from utils.tour_questions import get_question
 
 register_profile_questions_dict = {'registerTour': register_tour_questions, }
@@ -140,7 +140,8 @@ def send_next_question(user, questions):
 
     if condition:
         buttons = [(btn.get('text', btn.get('value')), btn['value']) for btn in question.get('buttons', [])]
-        update_keyboard_to_user(user, {'buttons': buttons, 'text': question_text, 'row_width': 2})
+        row_width = 1 if question['name'] == 'tour' else 2
+        update_keyboard_to_user(user, {'buttons': buttons, 'text': question_text, 'row_width': row_width})
     else:
         # Пропуски вопросов, для которых не подходит условие
         if question['name'] == 'loop' and len(user['register']['persons_list']) < int(user['register']['persons_amount']):
