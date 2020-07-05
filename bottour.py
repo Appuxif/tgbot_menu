@@ -35,6 +35,9 @@ def process_msg(msg):
     if debug and msg.from_user.id != 432134928:
         return
     # Поиск пользователя по user_id
+    if getattr(msg, 'text', '') == '/start':
+        if msg.from_user.id in users:
+            users.pop(msg.from_user.id)
     user = get_or_create_user(msg)
     print(user)
 
