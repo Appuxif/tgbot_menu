@@ -128,7 +128,7 @@ def process_call_data(user, msg):
         return False
     print('Получено нажатие на кнопку')
     if call_data:
-        if call_data == '/start':
+        if call_data == '/start_register':
             return start_register_tour(user)
         elif call_data.startswith('page_'):
             return update_keyboard_to_user(user, {'page': int(call_data.split('_')[1])})
