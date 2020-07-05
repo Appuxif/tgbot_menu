@@ -58,9 +58,10 @@ questions = [
      'type': 'text',
      'buttons': [{"value": "Оплачено"}]},
     # 7
-    {'title': 'Ура! Теперь ждем вас в {user[register][tour_destination]}, {user[register][tour_date]}, '
-              '{user[register][tour_name]}.\n\n{user[register][tour_info]}.\n'
-              'За день вам придет сообщение с напоминанием и телефоном гида.\n'
+    # {'title': 'Ура! Вы забронировали путеществие {user[register][tour_destination]}, {user[register][tour_date]}, '
+    {'title': 'Ура! Вы забронировали путеществие {user[register][tour_name]}\n Дата: {user[register][tour_date]}\n\n'
+              '{user[register][tour_info]}.\n\n'
+              'За день до выезда, вечером, придет смс с информацией об отъезде.\n'
               'Остались вопросы? Звоните 8 923 355-78-99\n\n'
               'С любовью, ДоскиЛыжи.\n\n'
               'А теперь можете забронировать другой тур',

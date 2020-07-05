@@ -293,8 +293,8 @@ def callback_query(call):
               f'Кнопка {call.data} Сообщение {call.message.message_id} Чат {call.message.chat.id}')
         text_message(call)
         # bot.delete_message(call.from_user.id, call.message.message_id)
-        text = call.message.text + '\n\n> ' + call_data_translate.get(call.data, call.data)
         try:
+            text = call.message.text + '\n\n> ' + call_data_translate.get(call.data, call.data)
             bot.edit_message_text(text, call.from_user.id, call.message.message_id)
         finally:
             pass
