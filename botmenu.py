@@ -10,7 +10,6 @@ from config import ya_money_url, token
 
 # telebot.apihelper.proxy = {'https': 'http://52.15.172.134:7778'}
 from utils.spreadsheet import get_data_from_sheet, get_all, send_order_to_table
-from utils.variables import menu_dict, tour_list
 
 bot = telebot.TeleBot(token)
 
@@ -24,12 +23,21 @@ payment_list = [
 users = {}
 # tour_list = tour_list
 # menu_dict, tour_list = get_all()
-menu_dict = menu_dict
-tour_list = tour_list
-print('Гугл таблица загружена')
 
+print('Гугл таблица загружена')
+menu_dict = tour_list = None
 # get_menu_dict()
 # print('Гугл таблица загружена')
+
+
+def update_variables():
+    global menu_dict, tour_list
+    from utils.variables import menu_dict, tour_list
+    menu_dict = menu_dict
+    tour_list = tour_list
+
+
+update_variables()
 
 
 # Возвращает объект клавиатуры для телеграма

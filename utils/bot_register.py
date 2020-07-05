@@ -8,6 +8,17 @@ from utils.tour_questions import get_question
 
 register_profile_questions_dict = {'registerTour': register_tour_questions, }
 
+tour_list = None
+
+
+def update_variables():
+    global tour_list
+    from utils.variables import tour_list
+    tour_list = tour_list
+
+
+update_variables()
+
 
 def register_profile(user, msg):
     """Процесс регистрации профиля"""

@@ -11,8 +11,10 @@ import telebot
 
 import utils.variables as vars
 # from botmenu import bot, get_all
-from botmenu import bot as botmenu
-from bottour import bot as bottour
+import botmenu
+import bottour
+# from botmenu import bot as botmenu
+# from bottour import bot as bottour
 from config import (
     WEBHOOK_HOST,
     WEBHOOK_PORT,
@@ -32,8 +34,8 @@ from config import (
 # with the same value in you put in WEBHOOK_HOST
 
 WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}:{WEBHOOK_PORT}'
-WEBHOOK_URL_PATH = f'/{botmenu.token}/'
-WEBHOOK_URL_PATH2 = f'/{bottour.token}/'
+WEBHOOK_URL_PATH = f'/{botmenu.bot.token}/'
+WEBHOOK_URL_PATH2 = f'/{bottour.bot.token}/'
 
 
 app = web.Application()
@@ -42,15 +44,18 @@ app = web.Application()
 # Process webhook calls
 async def handle(request):
     bot = None
-    if request.match_info.get('token') == botmenu.token:
-        bot = botmenu
-    elif request.match_info.get('token') == bottour.token:
-        bot = bottour
+    if request.match_info.get('token') == botmenu.bot.token:
+        bot = botmenu.bot
+    elif request.match_info.get('token') == bottour.bot.token:
+        bot = bottour.bot
 
     if bot is not None:
         request_body_dict = await request.json()
         update = telebot.types.Update.de_json(request_body_dict)
-        bot.process_new_updates([update])
+        try:
+            bot.process_new_updates([update])
+        except Exception as err:
+            bot.send_message(432134928, 'Ошибка: ' + str(err))
         return web.Response()
     else:
         return web.Response(text='Hello!')
@@ -60,6 +65,8 @@ async def control(request):
     print(request.query)
     if 'reload' in request.query:
         vars.update_variables()
+        botmenu.update_variables()
+        bottour.update_variables()
         print('Гугл таблица загружена')
     return web.Response(text=str(request.query))
 
@@ -68,14 +75,14 @@ app.router.add_get('/control', control)
 app.router.add_post('/{token}/', handle)
 
 # Set webhook
-botmenu.remove_webhook()
-botmenu.set_webhook(
+botmenu.bot.remove_webhook()
+botmenu.bot.set_webhook(
     url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
     # certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me on Heroku
 )
 
-bottour.remove_webhook()
-bottour.set_webhook(
+bottour.bot.remove_webhook()
+bottour.bot.set_webhook(
     url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH2,
     # certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me on Heroku
 )

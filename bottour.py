@@ -1,20 +1,15 @@
-import traceback
-from urllib.parse import quote_plus, quote
-from time import sleep
 from datetime import datetime, timezone
 import requests
-import sys
 
 from telebot.types import (InlineKeyboardMarkup, InlineKeyboardButton)
 import telebot
 
-from config import sheet_api_url, ya_money_url, token2 as token
+from config import token2 as token
 
 # telebot.apihelper.proxy = {'https': 'http://52.15.172.134:7778'}
-from utils.bot_register import register_profile_questions_dict, register_profile, tour_list
+from utils.bot_register import register_profile_questions_dict, register_profile, update_variables
 from utils.bot_start_register import start_register_tour, start_test_register_tour
-from utils.bot_user_utils import user_has_changed, update_keyboard_to_user
-from utils.spreadsheet import get_all
+from utils.bot_user_utils import update_keyboard_to_user
 from utils.variables import call_data_translate
 
 bot = telebot.TeleBot(token)
@@ -32,6 +27,7 @@ bot = telebot.TeleBot(token)
 # ]
 users = {}
 debug = False
+update_variables()
 
 
 def process_msg(msg):
