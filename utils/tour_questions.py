@@ -5,7 +5,8 @@ def get_question(n, tour_list=None):
     """Запрашивает вопрос из базы вопросов"""
     q = questions[n]
     if q['name'] == 'tour' and tour_list is not None:
-        q['buttons'] = [{'text': t[1], 'value': f'tour_{t[0]}'} for t in tour_list]
+        q['buttons'] = [{'text': call_data_translate.get(f'tour_{t[0]}', t[1]), 'value': f'tour_{t[0]}'}
+                        for t in tour_list]
     return questions[n]
 
 
@@ -63,5 +64,5 @@ questions = [
               'Можете забронировать другой тур',
      'name': 'register_done',
      'type': 'text',
-     'buttons': [{"value": "/start", 'text': call_data_translate.get('/start', '/start')}]},
+     'buttons': [{'text': call_data_translate.get('/start_register', '/start_register'), "value": "/start_register"}]},
 ]

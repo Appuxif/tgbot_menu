@@ -2,7 +2,7 @@ menu_dict = tour_list = None
 register_tour_questions = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
 call_data_translate = {
-    '/start': 'Забронировать!'
+    '/start_register': 'Забронировать!'
 }
 
 

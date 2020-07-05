@@ -70,9 +70,10 @@ def get_or_create_user(msg):
         # user = {'state': 'wait_for_fio', 'menu': 1}
         user = {'state': 'new_user'}
         users[msg.from_user.id] = user
-        bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи, что поможет быстро и легко забронировать '
-                                           'себе место в крутом путешествии!',
-                         reply_markup=make_keyboard({'buttons': [('Забронировать!', '/start')]}))
+        if (getattr(msg, 'text', '') or getattr(msg, 'data', '')) != '/start_register':
+            bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи, что поможет быстро и легко забронировать '
+                                               'себе место в крутом путешествии!',
+                             reply_markup=make_keyboard({'buttons': [('Забронировать!', '/start_register')]}))
     return user
 
 
@@ -107,14 +108,14 @@ def process_msg_text(user, msg):
     msg_text = (getattr(msg, 'text', '') or '')
     if not msg_text:
         return False
-    # Инициализация пользователя для неизвестного пользователя или по команде /start
+    # Инициализация пользователя для неизвестного пользователя или по команде /start_register
     print('Получен текст')
-    if '/start_test' in msg_text:
-        start_test_register_tour(user)
-        msg.data = 'Да'
-        return
+    # if '/start_test' in msg_text:
+    #     start_test_register_tour(user)
+    #     msg.data = 'Да'
+    #     return
 
-    elif '/start' in msg_text:
+    if '/start_register' in msg_text:
         return start_register_tour(user)
     # elif '/main_menu' in msg_text:
     #     return send_main_menu(user)
