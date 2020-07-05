@@ -1,419 +1,305 @@
 import traceback
 from urllib.parse import quote_plus, quote
 from time import sleep
+from datetime import datetime, timezone
 import requests
 import sys
 
+from telebot.types import (InlineKeyboardMarkup, InlineKeyboardButton)
 import telebot
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from config import sheet_api_url, ya_money_url, token
+from config import sheet_api_url, ya_money_url, token2 as token
 
 # telebot.apihelper.proxy = {'https': 'http://52.15.172.134:7778'}
+from utils.bot_register import register_profile_questions_dict, register_profile, tour_list
+from utils.bot_start_register import start_register_tour, start_test_register_tour
+from utils.bot_user_utils import user_has_changed, update_keyboard_to_user
+from utils.spreadsheet import get_all
+from utils.variables import call_data_translate
 
 bot = telebot.TeleBot(token)
 
-
 # тестовый список туров
-tour_list = [
-    # '29 февраля-1 марта АБЗАКОВО-БАННОЕ (от 4900 руб.)',
-]
+# tour_list = [
+#     # '29 февраля-1 марта АБЗАКОВО-БАННОЕ (от 4900 руб.)',
+# ]
 
-menu_dict = {}
 
-payment_list = [
-    ('0', 'Лично курьеру'),
-    ('1', 'Оплата банковской картой')
-]
-
+# menu_dict = {}
+# payment_list = [
+#     ('0', 'Лично курьеру'),
+#     ('1', 'Оплата банковской картой')
+# ]
 users = {}
+debug = False
 
 
-# Получение JSON из гугл таблицы
-def get_data_from_sheet(params):
-    r = requests.get(sheet_api_url+params)
-    if r.status_code == 200:
-        return r.json()
-    return None
+def process_msg(msg):
+    """Обработка сообщений от телеграма"""
+    if debug and msg.from_user.id != 432134928:
+        return
+    # Поиск пользователя по user_id
+    user = get_or_create_user(msg)
+    print(user)
+
+    # Проверка сессии на устаревание
+    now = datetime.now(tz=timezone.utc)
+    # then = now if 'last_activity' not in user else datetime.fromisoformat(user['last_activity'])
+    # diff = now - then
+    # st = user.get('state', '')
+    # Не сбрасывать сессию при ожидании оплаты
+    # if st != 'main_menu' and not st.endswith('BillQr_image') and diff.seconds > 3600:  # Время сессии - 1 час
+    #      bot.send_message(user, 'Ваша сессия устарела. Введите /start чтобы начать снова')
+    # else:
+    #     # Обработка сообщения от телеграма
+    do_processing(user, msg)
+    user['last_activity'] = now.isoformat()
+
+    # Ответ пользователю
+    answer_to_user(user, msg)
+
+    # Сохранение пользователя в БД
+    if user.get('need_to_delete', False) is True:
+        print('Пользователь удален из базы бота')
+        users.pop(msg.from_user.id)
+    else:
+        users[msg.from_user.id] = user
 
 
-def get_tour_list_from_data(data):
-    return [(d['index'], d['schedule']) for d in data['data']]
+def get_or_create_user(msg):
+    """Находит в базе или создает ногово пользователя в коллекции пользователей бота"""
+    user = users.get(msg.from_user.id)
+    if user is None:
+        print("Новый пользователь")
+        # user = {'state': 'wait_for_fio', 'menu': 1}
+        user = {'state': 'new_user'}
+        users[msg.from_user.id] = user
+        bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи, что поможет быстро и легко забронировать '
+                                           'себе место в крутом путешествии!',
+                         reply_markup=make_keyboard({'buttons': [('Забронировать!', '/start')]}))
+    return user
 
 
-# Скачивает список туров из гугл таблицы
-def get_tour_list():
-    global tour_list
-    data = None
-    while data is None:
-        data = get_data_from_sheet('?getData=1')
-        if data:
-            tour_list = get_tour_list_from_data(data)
-            # print(tour_list)
-        else:
-            print('Список туров не получен')
-            sleep(1)
-# get_tour_list()
+def do_processing(user, msg):
+    """Обработка сообщения от телеграма. Выполнение действия в соответствии с текущим состоянием пользователя"""
+    # Обработка команд
+    if process_msg_text(user, msg):
+        return
+
+    # Обработка кнопок
+    if process_call_data(user, msg):
+        return
+
+    # # Обработка документов, изображений, войсов и видео
+    # if process_document(user, msg):
+    #     return
+
+    # # Обработка локации
+    # if process_coordinates(user, msg):
+    #     return
+
+    # Обработка регистраций
+    if process_registration(user, msg):
+        return
+
+    # if getattr(msg, 'call', '') or '':
+    #     return send_main_menu(user)
 
 
-def get_menu_dict_from_data(data):
-    i = 1
-    menu_dict[f'menu{i}'] = []
-    menu_dict['list'] = []
-    for d in data['data']:
-        if d['item']:
-            menu_dict[f'menu{i}'].append((d['number'], d['item'], int(d['cost'][:-1])))
-            menu_dict['list'].append((d['number'], d['item'], int(d['cost'][:-1])))
-        else:
-            i += 1
-            menu_dict[f'menu{i}'] = []
-    menu_dict['menus'] = i
-    return menu_dict
+def process_msg_text(user, msg):
+    """Обработка введенных пользователем комманд"""
+    msg_text = (getattr(msg, 'text', '') or '')
+    if not msg_text:
+        return False
+    # Инициализация пользователя для неизвестного пользователя или по команде /start
+    print('Получен текст')
+    if '/start_test' in msg_text:
+        start_test_register_tour(user)
+        msg.data = 'Да'
+        return
+
+    elif '/start' in msg_text:
+        return start_register_tour(user)
+    # elif '/main_menu' in msg_text:
+    #     return send_main_menu(user)
 
 
-# Скачивает меню из гугл таблицы
-def get_menu_dict():
-    global menu_dict
-    data = None
-    while data is None:
-        data = get_data_from_sheet('?getData=2')
-        if data:
-            menu_dict = get_menu_dict_from_data(data)
-        else:
-            print('Список меню не получен')
-            sleep(1)
-# get_menu_dict()
-# print('Гугл таблица загружена')
+def process_call_data(user, msg):
+    """Обработка нажатий на кнопку"""
+    call_data = getattr(msg, 'data', '') or ''
+    if not call_data:
+        return False
+    print('Получено нажатие на кнопку')
+    if call_data:
+        if call_data == '/start':
+            return start_register_tour(user)
+        elif call_data.startswith('page_'):
+            return update_keyboard_to_user(user, {'page': int(call_data.split('_')[1])})
+        elif call_data == 'registerTour':
+            return start_register_tour(user)
+        # elif call_data == 'register_continue':
+        #     return register_continue(user, msg)
+        # elif call_data == 'questions_document_done':
+        #     user['questions_document_done'] = True
+        # elif call_data == 'questions_tag_done':
+        #     user['questions_tag_done'] = True
+        # elif call_data == 'processFunction':
+        #     return process_function_action(user)
+    return False
 
 
-# Скачивает все доступные данные с гугл таблицы
-def get_all():
-    global menu_dict
-    global tour_list
-    data = None
-    while data is None:
-        data = get_data_from_sheet('?getAll=1')
-        if data:
-            tour_list = get_tour_list_from_data(data['schedule'])
-            menu_dict = get_menu_dict_from_data(data['menu'])
-        else:
-            print('Данные не получены')
-            sleep(1)
-get_all()
-print('Гугл таблица загружена')
+def process_registration(user, msg):
+    """Обработка регистрации профиля"""
+    if user['state'] in register_profile_questions_dict:
+        register_profile(user, msg)
 
 
-# Возвращает объект клавиатуры для телеграма
-def make_keyboard(buttons, row_width=2):
+# def process_document(user, msg):
+#     """Обработка отправленных документов и изображений"""
+#     document = get_document_from_msg(msg)  # r.content
+#     if document:
+#         print('Получен документ')
+#         # if user['state'] == 'getElectricityBillQr_image':
+#         if user['state'].startswith('get') and user['state'].endswith('BillQr_image'):
+#             # Скачивание изображения из сообщения
+#             print('Получение квитанции об оплате')
+#             qr_type = user['state'][3:].split('Bill')[0].lower()
+#             return get_bill_qr_image(user, msg, document, qr_type)
+#         elif user['state'] == 'registerProfileElectricityCount' or 'registerProfileVotingDocument':
+#             user['document'] = document
+#             return False
+#     elif document is None:
+#         print('Не удалось получить документ')
+#         bot.send_message(msg.from_user.id, 'Не удалось получить документ. '
+#                                            'Попробуйте еще раз или обратитесь в поддержку.')
+#     elif document is False:
+#         return False
+
+
+# def process_coordinates(user, msg):
+#     """Обработка отправленной локации"""
+#     location = getattr(msg, 'location', None)
+#     if location:
+#         print(f'Получена локация {location.latitude} {location.longitude}')
+#         user['coordinates'] = (location.longitude, location.latitude)
+#     return False
+
+
+def answer_to_user(user, msg):
+    """Отправка ответа пользователю, если нужно"""
+    # if 'functions_to_process' in user:
+    #     print('Обработка функции')
+    #     for function in user['functions_to_process']:
+    #         process_function(user, function)
+    #     del user['functions_to_process']
+
+    if 'msg_to_user' in user:
+        bot.send_message(msg.from_user.id, text=user['msg_to_user']['text'],
+                         parse_mode=user['msg_to_user'].get('parse_mode', 'HTML'))
+        del user['msg_to_user']
+
+    if 'keyboard_to_user' in user:
+        bot.send_message(msg.from_user.id,
+                         user['keyboard_to_user']['text'],
+                         parse_mode=user['keyboard_to_user'].get('parse_mode', 'HTML'),
+                         # reply_markup=make_keyboard(user['keyboard_to_user'].get('buttons', []),
+                         #                            user['keyboard_to_user'].get('row_width', 2),
+                         #                            user['keyboard_to_user'].get('page', 0)))
+                         reply_markup=make_keyboard(user['keyboard_to_user']))
+        del user['keyboard_to_user']
+
+
+# def make_keyboard(buttons, row_width=2, page=0):
+def make_keyboard(keyboard_to_user):
+    """Генерирует клавиатуру для отправки пользователю. Распределяет кнопки по страницам, если кнопок много"""
     # buttons - массив с текстом кнопок
+    buttons = keyboard_to_user.get('buttons', [])
+    row_width = keyboard_to_user.get('row_width', 2)
+    page = keyboard_to_user.get('page', 0)
+    addition_buttons = keyboard_to_user.get('addition_buttons', [])
+    page_len = 10
+    # if buttons:
     markup = InlineKeyboardMarkup(row_width=row_width)
-    btns = [InlineKeyboardButton(text=btn_text, callback_data=btn_call) for btn_text, btn_call in buttons]
-    markup.add(*btns)
+    markup.add(*[InlineKeyboardButton(text=text, callback_data=call)
+                 for text, call in buttons[page_len * page: page_len * page + page_len]])
+    pages = len(buttons) // page_len + (
+        1 if len(buttons) % page_len != 0 else 0)  # По page_len элементов на страницу
+    if pages > 1:
+        markup.row(InlineKeyboardButton(text=f'Страница {page + 1} из {pages}', callback_data='none'))
+        markup.add(*[InlineKeyboardButton(text=i + 1, callback_data=f'page_{i}') for i in range(pages)])
+
+    markup.add(*[InlineKeyboardButton(text=btn[0], callback_data=btn[1]) for btn in addition_buttons])
     return markup
 
 
-# Отправляет сообщение с клавиатурой
-def send_keyboard(msg, text, buttons, row_width=2):
-    return bot.send_message(
-        msg.from_user.id,
-        text,
-        reply_markup=make_keyboard(buttons, row_width)
-    )
+# def get_document_from_msg(msg):
+#     """Получение и скачивание документа, фото, вижел или голоса из сообщения"""
+#     for file_type in ['document', 'photo', 'video', 'voice']:
+#         file = getattr(msg, file_type, None)
+#         if file:
+#             if file_type == 'photo':
+#                 file = file[1]
+#             break
+#     else:
+#         return False
+#
+#     file_id = file.file_id
+#     file_info = bot.get_file(file_id)
+#     file_name = 'bot{0}/{1}'.format(bot.token, file_info.file_path)
+#     file_url = 'https://api.telegram.org/file/{}'.format(file_name)
+#     return {'file_url': file_url, 'file_name': file_name, 'file_type': file_type}
+#     # r = requests.get(file_url, proxies=telebot.apihelper.proxy)
+#     # if r.status_code == 200:
+#     #     return {'content': r.content, 'file_url': file_url, 'file_name': file_name}
+#     # return None
 
 
-# Редактирует отправленное сообщение с клавиатурой
-def edit_keyboard(msg, text, edit_message_id, buttons, row_width=2):
-    bot.edit_message_text(text, msg.from_user.id, edit_message_id, reply_markup=make_keyboard(buttons, row_width))
-
-
-# Обработчик всех входящих сообщений
+#######################################################################################
 def listener(messages):
+    """Прослушивает все входящие боту сообщения и выводит текст в консоль"""
     for msg in messages:
-        user = users.get(msg.from_user.id)
-
         print(f'{msg.message_id} {msg.chat.username}:{msg.from_user.first_name} '
               f'[{msg.chat.id}:{msg.from_user.id}]: {msg.text}')
+
+
+@bot.message_handler(content_types=["text", "photo", "document", 'voice', 'video', 'location'])
+def text_message(msg):
+    """Обработка текстовых сообщений"""
+    c = 0
+    while True:
         try:
-            if '/start' in msg.text:
-                user = {
-                    'state': 'wait_for_fio',
-                    'menu': 1
-                }
-                users.update({msg.from_user.id: user})
-                bot.send_message(msg.from_user.id, 'Введите Фамилию и Имя, чтобы мы смогли отдать вам ваш заказ')
-            elif user is not None and 'wait_for_fio' in user.get('state', ''):
-                send_keyboard(
-                    msg,
-                    f'Вы ввели: {msg.text}\nПродолжаем?',
-                    [('Да', 'fio_1'),
-                     ('Нет', 'fio_2')],
-                    row_width=2
-                )
-                user.update({
-                    'fio': msg.text,
-                    'state': ''
-                })
-            else:
-                bot.send_message(msg.from_user.id, 'Чтобы оформить заказ, введите /start')
+            process_msg(msg)
+            break
+        except (requests.exceptions.ProxyError, requests.exceptions.ConnectTimeout) as err:
+            print(str(err))
+            c += 1
+            if c > 3:
+                raise err
         except Exception as err:
-            traceback.print_exc(file=sys.stdout)
-            bot.send_message(432134928, 'Ошибка в листенере')
+            bot.send_message(msg.from_user.id, 'Произошла ошибка. Скоро она будет решена. '
+                                               'Попробуйте позже или обратитесь в поддержку.')
+            text = f'{str(err)}\n{msg.from_user.id}: {getattr(msg, "text", None) or getattr(msg, "data", None)}'
+            bot.send_message(432134928, text)
+            raise err
 
 
-def get_menu_buttons(user):
-    menui = f'menu{user["menu"]}'
-
-    buttons = [(f'{m[1]} {m[2]} ₽', f'{menui}_{m[0]}') for m in menu_dict[menui]]
-    if user['menu'] < menu_dict['menus']:
-        buttons += [('СЛЕДУЮЩИЙ РАЗДЕЛ МЕНЮ', f'{menui}_next_')]
-    buttons += [('СБРОСИТЬ ВЫБОР', f'{menui}_clear_')]
-    buttons += [('ЗАВЕРШИТЬ ВЫБОР', f'{menui}_done_')]
-    return buttons
-
-
-def send_menu_photo(call, user):
-    bot.send_photo(
-        call.from_user.id,
-        open('menu.jpg', 'rb'),
-        # caption='Ознакомтесь с меню',
-    )
-    send_keyboard(
-        call,
-        # "Готовы?",
-        'Ознакомтесь с меню',
-        [('Отлично, пора выбирать!', 'photo_done')],
-        row_width=1
-    )
-
-
-def send_menu1(call, user):
-    text = 'Выберите блюдо\n'
-    text += generate_menu_text(user)
-    send_keyboard(
-        call,
-        text,
-        get_menu_buttons(user),
-        row_width=1
-    )
-
-
-def edit_menu1_text(call, user, message_id):
-    text = 'Выберите блюдо\n'
-    text += generate_menu_text(user)
-    try:
-        edit_keyboard(
-            call,
-            text,
-            message_id,
-            get_menu_buttons(user),
-            row_width=1
-        )
-    except Exception as err:
-        traceback.print_exc(file=sys.stdout)
-
-
-def generate_menu_text(user):
-    text = ''
-    if user.get('menu_list', []):
-        text += '\n'
-        for m in user.get('menu_list', []):
-            text += f"{m[1]} {m[2]} ₽\n"
-    text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
-    return text
-    # text = '\n'.join(text_list[:-1]) + '\n'
-
-
-# text += f"{m[1]} {m[2]} ₽"
-# text += f"\nСумма: {user.get('menu_bill', 0)} ₽"
-
-def not_done_menu(call, user, item):
-    for m in menu_dict['list']:
-        if item in m[0]:
-            user['menu_list'] = user.get('menu_list', []) + [m]
-            user['menu_bill'] = user.get('menu_bill', 0) + m[2]
-            edit_menu1_text(call, user, call.message.message_id)
-            break
-
-
-def construct_order_text(user):
-    text = ''
-    text += user.get('fio', '') + '\n'
-    text += user.get("tour", '') + '\n'
-    text += generate_menu_text(user)
-    return text
-
-
-def send_confirm(call, user):
-    if user.get('menu_list', []):
-        text = 'Подтвердите выбор\n\n'
-        text += construct_order_text(user)
-        send_keyboard(
-            call,
-            text,
-            [('Да', 'fin_1'),
-             ('Нет', 'fin_2')],
-            row_width=2
-        )
-    else:
-        bot.send_message(call.from_user.id, 'Вы ничего не выбрали. Заказ сброшен. \n'
-                                            'Введите /start, чтобы начать заново')
-
-
-def process_fio(call, user):
-    item = call.data.split('_')[1]
-    if '1' in item:
-        send_keyboard(
-            call,
-            'Выберите тур',
-            [(t[1], f'tour_{t[0]}') for t in tour_list],
-            row_width=1
-        )
-    else:
-        bot.send_message(call.from_user.id, 'Вы не подтвердили Фамилию и Имя. Заказ сброшен. \n'
-                                            'Введите /start, чтобы начать заново')
-
-
-def process_tour(call, user):
-    tour = call.data.split('_')[1]
-    for t in tour_list:
-        if int(tour) == t[0]:
-            user.update({'tour': t[1]})
-            break
-    send_menu_photo(call, user)
-
-
-def process_photo(call, user):
-    send_menu1(call, user)
-    return True
-
-
-def process_menu1(call, user):
-    delete = True
-    msg = call.message
-    item = call.data.split('_')[-1]
-    menui = f'menu{user["menu"]}'
-    if f'{menui}_clear_' in call.data:
-        delete = False
-        user['menu'] = 1
-        user['menu_list'] = []
-        user[f'menu_bill'] = 0
-        if msg.text != 'Выберите блюдо':
-            edit_menu1_text(call, user, msg.message_id)
-    elif f'{menui}_next_' in call.data:
-        if user['menu'] < menu_dict['menus']:
-            user['menu'] += 1
-            send_menu1(call, user)
-        else:
-            send_confirm(call, user)
-    elif f'{menui}_done_' in call.data:
-        send_confirm(call, user)
-    else:
-        delete = False
-        not_done_menu(call, user, item)
-    return delete
-
-
-def process_fin(call, user):
-    item = call.data.split('_')[1]
-    if '1' in item:
-        user.update({'confirm': item})
-        send_keyboard(
-            call,
-            'Выберите способ оплаты',
-            [(m[1], f'pay_{m[0]}') for m in payment_list],
-            row_width=1
-        )
-    else:
-        bot.send_message(call.from_user.id, 'Вы не подтвердили заказ. Заказ сброшен. \n'
-                                            'Введите /start, чтобы начать заново')
-
-
-def process_pay(call, user):
-    item = call.data.split('_')[1]
-    for p in payment_list:
-        if item in p[0]:
-            user.update({'payment': p[1]})
-    if item == '0':
-        text = 'Спасибо! Ваш заказ будет ждать вас!\n\n'
-        text += construct_order_text(user)
-        text += f'\nСпособ оплаты: {user["payment"]}'
-    else:
-        text = 'Спасибо! Вы выбрали оплату банковской картой. ' \
-               'Произведите оплату и тогда ваш заказ будет ждать вас!\n\n'
-        text += construct_order_text(user)
-        text += f'\nСпособ оплаты: {user["payment"]}'
-        text += f'\nСсылка для оплаты: {ya_money_url}{user["menu_bill"]}'
-        text += f'\nВ поле "Комментарий" обязательно укажите Фамилию и Имя, чтобы мы смогли вас идентифицировать'
-    text += '\n\nПо всем вопросам обращайтесь по телефону: +7 (950) 544-74-73\n' \
-            'Для нового заказа введите /start'
-    bot.send_message(
-        call.from_user.id,
-        text,
-        disable_web_page_preview=True
-    )
-    user['tg'] = f"{call.from_user.id} {call.from_user.username} " \
-                 f"{call.from_user.first_name} {call.from_user.last_name}"
-    print(user)
-    send_order_to_table(user)
-
-
-def send_order_to_table(user):
-    user["menu_bill"] = str(user["menu_bill"])
-    params = f'?addOrder=1' \
-             f'&tour={quote_plus(user["tour"][:20] + "...")}' \
-             f'&fio={quote_plus(user["fio"])}' \
-             f'&bill={quote_plus(user["menu_bill"])}' \
-             f'&payment={quote_plus(user["payment"])}' \
-             f'&tg={quote_plus(user["tg"])}'
-    for m in user['menu_list']:
-        params += f'&list={quote_plus(m[1])}'
-    data = get_data_from_sheet(params)
-    print(data)
-
-
-# Функция обрабатывает нажатие кнопок на клавиатуре
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    delete = True
+    """Обработка нажатий кнопок на кливиатуре"""
 
-    msg = call.message  # Данные о сообщении с клавиатурой
-    print(f'{call.from_user.id}:{call.from_user.username}:{call.from_user.first_name} '
-          f'Кнопка {call.data} Сообщение {msg.message_id} Чат {msg.chat.id}')
-
-    user = users.get(call.from_user.id)
-    try:
-        if user is None:
-            bot.send_message(call.from_user.id, 'Произошла ошибка. \nВведите /start, чтобы начать заново')
-
-        elif call.data.startswith('fio_'):
-            process_fio(call, user)
-
-        elif call.data.startswith('tour_'):
-            process_tour(call, user)
-
-        elif call.data.startswith('photo_'):
-            delete = process_photo(call, user)
-
-        elif call.data.startswith('menu'):
-            delete = process_menu1(call, user)
-
-        elif call.data.startswith('fin_'):
-            process_fin(call, user)
-
-        elif call.data.startswith('pay_'):
-            process_pay(call, user)
-
-        if delete:
-            bot.delete_message(call.from_user.id, msg.message_id)
-    except Exception as err:
-        traceback.print_exc(file=sys.stdout)
-        bot.send_message(432134928, 'Ошибка при нажатии на кнопку')
     bot.answer_callback_query(call.id)
+    if call.data != 'none':
+        print(f'{call.from_user.id}:{call.from_user.username}:{call.from_user.first_name} '
+              f'Кнопка {call.data} Сообщение {call.message.message_id} Чат {call.message.chat.id}')
+        text_message(call)
+        # bot.delete_message(call.from_user.id, call.message.message_id)
+        text = call.message.text + '\n\n> ' + call_data_translate.get(call.data, call.data)
+        bot.edit_message_text(text, call.from_user.id, call.message.message_id)
 
 
 bot.set_update_listener(listener)
-# Для запуска локально, вне яндекс функции
-if __name__ == '__main__':
 
-    bot.remove_webhook()
+if __name__ == '__main__':
+    debug = True
+    print('working')
     bot.polling()

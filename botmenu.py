@@ -1,25 +1,20 @@
 import traceback
-from urllib.parse import quote_plus, quote
+from urllib.parse import quote_plus
 from time import sleep
-import requests
 import sys
 
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from config import sheet_api_url, ya_money_url, token
+from config import ya_money_url, token
 
 # telebot.apihelper.proxy = {'https': 'http://52.15.172.134:7778'}
+from utils.spreadsheet import get_data_from_sheet, get_all, send_order_to_table
+from utils.variables import menu_dict, tour_list
 
 bot = telebot.TeleBot(token)
 
-
-# тестовый список туров
-tour_list = [
-    # '29 февраля-1 марта АБЗАКОВО-БАННОЕ (от 4900 руб.)',
-]
-
-menu_dict = {}
+# menu_dict = {}
 
 payment_list = [
     ('0', 'Лично курьеру'),
@@ -27,80 +22,14 @@ payment_list = [
 ]
 
 users = {}
+# tour_list = tour_list
+# menu_dict, tour_list = get_all()
+menu_dict = menu_dict
+tour_list = tour_list
+print('Гугл таблица загружена')
 
-
-# Получение JSON из гугл таблицы
-def get_data_from_sheet(params):
-    r = requests.get(sheet_api_url+params)
-    if r.status_code == 200:
-        return r.json()
-    return None
-
-
-def get_tour_list_from_data(data):
-    return [(d['index'], d['schedule']) for d in data['data']]
-
-
-# Скачивает список туров из гугл таблицы
-def get_tour_list():
-    global tour_list
-    data = None
-    while data is None:
-        data = get_data_from_sheet('?getData=1')
-        if data:
-            tour_list = get_tour_list_from_data(data)
-            # print(tour_list)
-        else:
-            print('Список туров не получен')
-            sleep(1)
-# get_tour_list()
-
-
-def get_menu_dict_from_data(data):
-    i = 1
-    menu_dict[f'menu{i}'] = []
-    menu_dict['list'] = []
-    for d in data['data']:
-        if d['item']:
-            menu_dict[f'menu{i}'].append((d['number'], d['item'], int(d['cost'][:-1])))
-            menu_dict['list'].append((d['number'], d['item'], int(d['cost'][:-1])))
-        else:
-            i += 1
-            menu_dict[f'menu{i}'] = []
-    menu_dict['menus'] = i
-    return menu_dict
-
-
-# Скачивает меню из гугл таблицы
-def get_menu_dict():
-    global menu_dict
-    data = None
-    while data is None:
-        data = get_data_from_sheet('?getData=2')
-        if data:
-            menu_dict = get_menu_dict_from_data(data)
-        else:
-            print('Список меню не получен')
-            sleep(1)
 # get_menu_dict()
 # print('Гугл таблица загружена')
-
-
-# Скачивает все доступные данные с гугл таблицы
-def get_all():
-    global menu_dict
-    global tour_list
-    data = None
-    while data is None:
-        data = get_data_from_sheet('?getAll=1')
-        if data:
-            tour_list = get_tour_list_from_data(data['schedule'])
-            menu_dict = get_menu_dict_from_data(data['menu'])
-        else:
-            print('Данные не получены')
-            sleep(1)
-get_all()
-print('Гугл таблица загружена')
 
 
 # Возвращает объект клавиатуры для телеграма
@@ -135,10 +64,7 @@ def listener(messages):
               f'[{msg.chat.id}:{msg.from_user.id}]: {msg.text}')
         try:
             if '/start' in msg.text:
-                user = {
-                    'state': 'wait_for_fio',
-                    'menu': 1
-                }
+                user = {'state': 'wait_for_fio', 'menu': 1}
                 users.update({msg.from_user.id: user})
                 bot.send_message(msg.from_user.id, 'Введите Фамилию и Имя, чтобы мы смогли отдать вам ваш заказ')
             elif user is not None and 'wait_for_fio' in user.get('state', ''):
@@ -157,7 +83,7 @@ def listener(messages):
                 bot.send_message(msg.from_user.id, 'Чтобы оформить заказ, введите /start')
         except Exception as err:
             traceback.print_exc(file=sys.stdout)
-            bot.send_message(432134928, 'Ошибка в листенере')
+            bot.send_message(432134928, f'Ошибка в листенере\n{err}')
 
 
 def get_menu_buttons(user):
@@ -265,7 +191,7 @@ def process_fio(call, user):
         send_keyboard(
             call,
             'Выберите тур',
-            [(t[1], f'tour_{t[0]}') for t in tour_list],
+            [(t[1], f'tour_{t[0]}') for t in tour_list if t[6].lower() == 'да'],
             row_width=1
         )
     else:
@@ -357,20 +283,6 @@ def process_pay(call, user):
     send_order_to_table(user)
 
 
-def send_order_to_table(user):
-    user["menu_bill"] = str(user["menu_bill"])
-    params = f'?addOrder=1' \
-             f'&tour={quote_plus(user["tour"][:20] + "...")}' \
-             f'&fio={quote_plus(user["fio"])}' \
-             f'&bill={quote_plus(user["menu_bill"])}' \
-             f'&payment={quote_plus(user["payment"])}' \
-             f'&tg={quote_plus(user["tg"])}'
-    for m in user['menu_list']:
-        params += f'&list={quote_plus(m[1])}'
-    data = get_data_from_sheet(params)
-    print(data)
-
-
 # Функция обрабатывает нажатие кнопок на клавиатуре
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
@@ -407,11 +319,12 @@ def callback_query(call):
             bot.delete_message(call.from_user.id, msg.message_id)
     except Exception as err:
         traceback.print_exc(file=sys.stdout)
-        bot.send_message(432134928, 'Ошибка при нажатии на кнопку')
+        bot.send_message(432134928, f'Ошибка при нажатии на кнопку\n{err}')
     bot.answer_callback_query(call.id)
 
 
 bot.set_update_listener(listener)
+
 # Для запуска локально, вне яндекс функции
 if __name__ == '__main__':
 

@@ -5,3 +5,4 @@ PySocks==1.7.1
 pymongo==3.10.1
 aiohttp==3.5.4
 gunicorn==19.9.0
+plural-ru==0.0.0

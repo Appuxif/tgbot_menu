@@ -9,7 +9,10 @@ from aiohttp import web
 
 import telebot
 
-from botmenu import bot, get_menu_dict, get_tour_list, get_all
+import utils.variables as vars
+# from botmenu import bot, get_all
+from botmenu import bot as botmenu
+from bottour import bot as bottour
 from config import (
     WEBHOOK_HOST,
     WEBHOOK_PORT,
@@ -18,6 +21,7 @@ from config import (
     # WEBHOOK_SSL_CERT,
     # WEBHOOK_SSL_PRIV
 )
+
 
 # Quick'n'dirty SSL certificate generation:
 #
@@ -28,7 +32,8 @@ from config import (
 # with the same value in you put in WEBHOOK_HOST
 
 WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}:{WEBHOOK_PORT}'
-WEBHOOK_URL_PATH = f'/{bot.token}/'
+WEBHOOK_URL_PATH = f'/{botmenu.token}/'
+WEBHOOK_URL_PATH2 = f'/{bottour.token}/'
 
 
 app = web.Application()
@@ -36,7 +41,13 @@ app = web.Application()
 
 # Process webhook calls
 async def handle(request):
-    if request.match_info.get('token') == bot.token:
+    bot = None
+    if request.match_info.get('token') == botmenu.token:
+        bot = botmenu
+    elif request.match_info.get('token') == bottour.token:
+        bot = bottour
+
+    if bot is not None:
         request_body_dict = await request.json()
         update = telebot.types.Update.de_json(request_body_dict)
         bot.process_new_updates([update])
@@ -48,7 +59,7 @@ async def handle(request):
 async def control(request):
     print(request.query)
     if 'reload' in request.query:
-        get_all()
+        vars.update_variables()
         print('Гугл таблица загружена')
     return web.Response(text=str(request.query))
 
@@ -57,9 +68,15 @@ app.router.add_get('/control', control)
 app.router.add_post('/{token}/', handle)
 
 # Set webhook
-bot.remove_webhook()
-bot.set_webhook(
+botmenu.remove_webhook()
+botmenu.set_webhook(
     url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
+    # certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me on Heroku
+)
+
+bottour.remove_webhook()
+bottour.set_webhook(
+    url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH2,
     # certificate=open(WEBHOOK_SSL_CERT, 'r')  # TODO: comment me on Heroku
 )
 
