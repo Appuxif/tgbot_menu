@@ -74,8 +74,8 @@ def get_or_create_user(msg):
         user = {'state': 'new_user'}
         users[msg.from_user.id] = user
         if (getattr(msg, 'text', '') or getattr(msg, 'data', '')) != '/start_register':
-            bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи, что поможет быстро и легко забронировать '
-                                               'себе место в крутом путешествии!',
+            bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи! '
+                                               'Давай забронируем место в крутом путешествии!!',
                              reply_markup=make_keyboard({'buttons': [('Забронировать!', '/start_register')]}))
     return user
 
@@ -294,12 +294,16 @@ def callback_query(call):
         text_message(call)
         # bot.delete_message(call.from_user.id, call.message.message_id)
         text = call.message.text + '\n\n> ' + call_data_translate.get(call.data, call.data)
-        bot.edit_message_text(text, call.from_user.id, call.message.message_id)
+        try:
+            bot.edit_message_text(text, call.from_user.id, call.message.message_id)
+        finally:
+            pass
 
 
 bot.set_update_listener(listener)
 
 if __name__ == '__main__':
+    bot.set_webhook()
     debug = True
     print('working')
     bot.polling()

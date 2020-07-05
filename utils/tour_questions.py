@@ -40,28 +40,30 @@ questions = [
      'name': 'loop',
      'type': 'none',
      'conditions': {'none_field': True}},
-    # 6 Отправить документ для ознакомления. Нужна ссылка на документ. Просто вставить ссылку в текст
-    {'title': 'Оплачивая тур вы соглашаетесь с нашими условиями бронирования. '
-              'Вы принимаете <a href="https://vk.com/doc8962252_529848400?hash='
-              '7d8dd7dc7e1a61eff6&dl=969edf1105c0622e9c">условия</a>?',
-     'name': 'docAgreed',
-     'type': 'text',
-     'isBool': True,
-     'buttons': [{"value": "Да"}, {"value": "Нет"}]},
-    # 7
-    {'title': 'Ваш заказ: {user[register][persons_amount_text]} на {user[register][tour_name]}, '
-              '{user[register][tour_date]}.\n Итого к оплате: {user[register][sum]}\n'
-              'Ссылка для оплаты: {user[register][payment_link]}',
+    # Отправить документ для ознакомления. Нужна ссылка на документ. Просто вставить ссылку в текст
+    # {'title': 'Оплачивая тур вы соглашаетесь с нашими условиями бронирования. '
+    #           'Вы принимаете ?',
+    #  'name': 'docAgreed',
+    #  'type': 'text',
+    #  'isBool': True,
+    #  'buttons': [{"value": "Да"}, {"value": "Нет"}]},
+    # 6
+    {'title': 'Ваш заказ: {user[register][persons_amount_text]} на {user[register][tour_name]}\n'
+              '{user[register][tour_date]}.\n'
+              'Итого к оплате: {user[register][sum]}\n'
+              'Ссылка для оплаты: {user[register][payment_link]}\n\n'
+              'Оплачивая тур вы соглашаетесь с нашими <a href="https://vk.com/doc8962252_529848400?hash='
+              '7d8dd7dc7e1a61eff6&dl=969edf1105c0622e9c">условиями</a> бронирования. ',
      'name': 'summary',
      'type': 'text',
-     'buttons': [{"value": "Оплатил"}]},
-    # 8
+     'buttons': [{"value": "Оплачено"}]},
+    # 7
     {'title': 'Ура! Теперь ждем вас в {user[register][tour_destination]}, {user[register][tour_date]}, '
-              '{user[register][tour_name]}. Не забудьте взять (______).\n'
+              '{user[register][tour_name]}.\n\n{user[register][tour_info]}.\n'
               'За день вам придет сообщение с напоминанием и телефоном гида.\n'
               'Остались вопросы? Звоните 8 923 355-78-99\n\n'
-              'С любовью, ДоскиЛыжи\n\n'
-              'Можете забронировать другой тур',
+              'С любовью, ДоскиЛыжи.\n\n'
+              'А теперь можете забронировать другой тур',
      'name': 'register_done',
      'type': 'text',
      'buttons': [{'text': call_data_translate.get('/start_register', '/start_register'), "value": "/start_register"}]},

@@ -1,3 +1,5 @@
+import re
+
 import plural_ru
 
 from config import ya_money_url
@@ -66,6 +68,7 @@ def check_answer_another(user, msg, question):
         if not hasattr(msg, 'text'):
             update_msg_to_user(user, {'text': 'Отправьте текст'})
             return True
+
         if question['type'] == 'num':
             try:
                 float(msg.text)
@@ -78,6 +81,14 @@ def check_answer_another(user, msg, question):
         else:
             field, f = question['name'], ''
         data = msg.text
+
+    # Проверка телефона
+    if field == 'phone' or f == 'phone':
+        # Проводить проверку в БД по номеру телефона
+        p = validate_phone(msg.text)
+        if p is None:
+            update_msg_to_user(user, {'text': 'Введите номер телефона в формате 7XXXXXXXXXX'})
+            return True
 
     if field.endswith('_list'):
         last_item = user['register'].get(field, [{}])[-1]
@@ -164,6 +175,7 @@ def register_summary(user):
     user['register']['sum'] = get_summary_sum(user, tour)
     user['register']['payment_link'] = f'{ya_money_url}{user["register"]["sum"]}'
     user['register']['tour_name'] = call_data_translate.get(user['register']['tour'], user['register']['tour'])
+    user['register']['tour_info'] = tour[7]
 
     # Отправка данных в таблицу
     send_book_to_table(user)
@@ -179,6 +191,18 @@ def get_summary_sum(user, tour):
         sum_ += p['price']
     user['register']['persons_list'][0]['sum'] = sum_
     return sum_
+
+
+def validate_phone(phone):
+    """Функция приводит различное написание номеров телефонов к виду 79261234567"""
+    phone = re.sub(r'[^\d]', '', phone)  # Удаляются все символы, которые не являются цифрой
+    if len(phone) == 11 and phone.startswith('8'):
+        phone = '7' + phone[1:]
+    elif len(phone) == 10 and phone.startswith('9'):
+        phone = '7' + phone
+    elif len(phone) < 10:
+        return None
+    return phone
 # def send_confirm_menu(user):
 #     """Отправка клавиатуры с подтверждением сохранения введенных данных"""
 #     text = 'Были введены следующие данные \n\n'
