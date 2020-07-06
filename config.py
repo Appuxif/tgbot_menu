@@ -3,6 +3,7 @@ import os
 sheet_api_url = os.environ.get('SHEET_API_URL')
 # sheet_api_url2 = os.environ.get('SHEET_API_URL2')
 ya_money_url = os.environ.get('YA_MONEY_URL')
+ya_money_url2 = os.environ.get('YA_MONEY_URL2')
 # ya_money_url2 = os.environ.get('YA_MONEY_URL2')
 
 token = os.environ.get('TOKEN', '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4')

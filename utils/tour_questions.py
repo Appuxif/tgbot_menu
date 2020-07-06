@@ -51,12 +51,13 @@ questions = [
     {'title': 'Ваш заказ: {user[register][persons_amount_text]} на {user[register][tour_name]}\n'
               '{user[register][tour_date]}.\n'
               'Итого к оплате: {user[register][sum]}\n'
-              'Ссылка для оплаты: {user[register][payment_link]}\n\n'
+              'Ссылка для оплаты: {user[register][payment_link]}\n'
+              'Справа от суммы выбрать значок карты\n\n'
               'Оплачивая тур вы соглашаетесь с нашими <a href="https://vk.com/doc8962252_529848400?hash='
               '7d8dd7dc7e1a61eff6&dl=969edf1105c0622e9c">условиями</a> бронирования. ',
      'name': 'summary',
      'type': 'text',
-     'buttons': [{"value": "Оплачено"}]},
+     'buttons': [{"text": call_data_translate.get('payment_done', 'payment_done'), "value": "payment_done"}]},
     # 7
     # {'title': 'Ура! Вы забронировали путеществие {user[register][tour_destination]}, {user[register][tour_date]}, '
     {'title': 'Ура! Вы забронировали путеществие {user[register][tour_name]}\n Дата: {user[register][tour_date]}\n\n'
