@@ -1,7 +1,10 @@
-def start_register_tour(user):
+def start_register_tour(user, msg):
     """Начало регистрации брони тура"""
     user.clear()
     user.update({'step': 0, 'state': 'registerTour', 'fields_entered': [], 'register': {}})
+    user['tg'] = f'{msg.from_user.id} {msg.from_user.username or ""} ' \
+                 f'{msg.from_user.first_name or ""} {msg.from_user.last_name or ""}'
+    user['telegramID'] = msg.from_user.id
 
 
 def start_test_register_tour(user):

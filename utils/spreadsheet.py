@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from time import sleep
 from urllib.parse import quote_plus
+from uuid import uuid4
 
 import requests
 
@@ -107,10 +108,29 @@ def send_order_to_table(user):
 def send_book_to_table(user):
     """Отправка брони тура. Строго для bottour"""
     now = datetime.now(tz=timezone.utc).isoformat()
+    user['register']['payment_id'] = str(uuid4()).replace('-', '')[:6]
     request = {
         'method': 'addBook',
         'tour': user['register']['tour_name'][:20],
-        'p_list': [[now] + list(p.values()) for p in user['register']['persons_list']]
+        'p_list': [[now, user['tg']] + list(p.values()) + [user['register']['payment_id']]
+                   for p in user['register']['persons_list']]
+    }
+
+    data = get_data_from_sheet(request, 'POST')
+    print('Ответ от GAS', data)
+    if not('msg' in data and data['msg'] == 'OK'):
+        raise ValueError(data)
+
+
+def send_payment_accept(tour, payment_id, method=None):
+    method = method or 'acceptPayment'
+    request = {
+        'method': method,
+        'tour': tour[:20],
+        'paymentID': payment_id
     }
     data = get_data_from_sheet(request, 'POST')
-    print(data)
+    print('Ответ от GAS', data)
+    if not ('msg' in data and data['msg'] == 'OK'):
+        raise ValueError(data)
+

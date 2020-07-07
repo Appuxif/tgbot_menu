@@ -6,7 +6,7 @@ def get_question(n, tour_list=None):
     q = questions[n]
     if q['name'] == 'tour' and tour_list is not None:
         q['buttons'] = [{'text': call_data_translate.get(f'tour_{t[0]}', t[1]), 'value': f'tour_{t[0]}'}
-                        for t in tour_list]
+                        for t in tour_list if int(t[10]) < int(t[9])]  # Проверка на превышение числа брони
     return questions[n]
 
 
@@ -20,7 +20,10 @@ questions = [
      'type': 'text',
      'buttons': []},  # buttons будет заполнено при вызцове вопроса
     # 1
-    {'title': 'Сколько мест нужно забронировать?',
+    {'title': 'Доступно мест: {user[register][tour_amount]}\n'
+              'Разрешенный возраст: {user[register][tour_age]}+\n'
+              'Сколько мест нужно забронировать?\n\n'
+              'Чтобы начать заново, введите /start',
      'name': 'persons_amount',
      'type': 'num'},
     # 2 Вводится, пока длина списка не будет равна persons_amount
@@ -59,13 +62,21 @@ questions = [
      'type': 'text',
      'buttons': [{"text": call_data_translate.get('payment_done', 'payment_done'), "value": "payment_done"}]},
     # 7
+    {'title': 'Отправьте квитанцию об оплате, чтобы мы все проверили и сообщили вам о результате оплаты',
+     'name': 'payment_confirmation',
+     'type': 'image'},  # Тут нужна кастомная кнопка
+    # 8
+    {'title': 'Подождите. Как проверим квитанцию, вам придет уведомление. А пока можете забронировать другой тур.',
+     'name': 'register_done',
+     'type': 'text',
+     'buttons': [{'text': call_data_translate.get('/start_register', '/start_register'), "value": "/start_register"}]},
     # {'title': 'Ура! Вы забронировали путеществие {user[register][tour_destination]}, {user[register][tour_date]}, '
-    {'title': 'Ура! Вы забронировали путеществие {user[register][tour_name]}\n Дата: {user[register][tour_date]}\n\n'
+    {'title': 'Вы забронировали путешествие {user[register][tour_name]}\n'
+              'Дата: {user[register][tour_date]}\n\n'
               '{user[register][tour_info]}.\n\n'
               'За день до выезда, вечером, придет смс с информацией об отъезде.\n'
               'Остались вопросы? Звоните 8 923 355-78-99\n\n'
-              'С любовью, ДоскиЛыжи.\n\n'
-              'А теперь можете забронировать другой тур',
+              'С любовью, ДоскиЛыжи.',
      'name': 'register_done',
      'type': 'text',
      'buttons': [{'text': call_data_translate.get('/start_register', '/start_register'), "value": "/start_register"}]},

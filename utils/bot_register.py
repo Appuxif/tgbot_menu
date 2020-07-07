@@ -2,7 +2,7 @@ import re
 
 import plural_ru
 
-from config import ya_money_url
+from config import ya_money_url2 as ya_money_url
 from utils.bot_user_utils import update_msg_to_user, update_keyboard_to_user
 from utils.spreadsheet import send_book_to_table
 from utils.variables import register_tour_questions, call_data_translate
@@ -90,6 +90,16 @@ def check_answer_another(user, msg, question):
             update_msg_to_user(user, {'text': 'Введите номер телефона в формате 7XXXXXXXXXX'})
             return True
 
+    # Проверка количества брони
+    if field == 'persons_amount' and int(data) > user['register']['tour_amount']:
+        update_msg_to_user(user, {'text': 'Превышено допустимое количество человек для этого тура'})
+        return True
+
+    # Проверка возраста
+    if f == 'age' and int(data) < user['register']['tour_age']:
+        update_msg_to_user(user, {'text': 'Указанный возраст не подходит под условия тура'})
+        return True
+
     if field.endswith('_list'):
         last_item = user['register'].get(field, [{}])[-1]
         last_item[f] = data
@@ -98,7 +108,25 @@ def check_answer_another(user, msg, question):
     else:
         user['register'][field] = data
     if question['name'] not in user['fields_entered']:
-        user['fields_entered'] += [question['name']]
+        user['fields_entered'] += [field]
+
+
+def check_answer_document(user, msg, question):
+    """Проверка отправки изображения, аудио или видео"""
+    if 'document' in user['register'] and (question['type'] == 'image' and
+                                           user['register']['document']['file_type'] in ['photo', 'document'] or
+                                           user['register']['document']['file_type'] == question['type']):
+        # user['register'][question['name']] = user['register']['document']['file_url']
+        user['register'][question['name']] = user['register']['document']['file_id']
+        user['payment_confirmation_notification'] = True
+        del user['register']['document']
+        return False
+    else:
+        # if user.get('questions_document_done'):
+        #     del user['questions_document_done']
+        #     return False
+        update_msg_to_user(user, {'text': f'Ответ на этот вопрос должен содержать {question["type"]}'})
+        return True
 
 
 def make_the_next_step(user, msg, questions):
@@ -143,6 +171,13 @@ def send_next_question(user, questions):
         # Завершение регистрации
         user['register']['tour_destination'] = 'tour_destination'
     user['register']['persons_list__len'] = user['register'].get('persons_list__len', 1)
+
+    # Доступное количество тура
+    if user['register'].get('tour') and not user['register'].get('tour_amount'):
+        tour = [t for t in tour_list if f'tour_{t[0]}' == user['register']['tour']][0]
+        user['register']['tour_amount'] = int(tour[9]) - int(tour[10])
+        user['register']['tour_age'] = int(tour[8])
+
     question_text = question['title'].format(user=user)
 
     # Отправляем следующий вопрос
@@ -153,9 +188,11 @@ def send_next_question(user, questions):
         buttons = [(btn.get('text', btn.get('value')), btn['value']) for btn in question.get('buttons', [])]
         row_width = 1 if question['name'] == 'tour' else 2
         update_keyboard_to_user(user, {'buttons': buttons, 'text': question_text, 'row_width': row_width})
+        return True
     else:
         # Пропуски вопросов, для которых не подходит условие
-        if question['name'] == 'loop' and len(user['register']['persons_list']) < int(user['register']['persons_amount']):
+        if question['name'] == 'loop' and len(user['register']['persons_list']) < int(
+                user['register']['persons_amount']):
             user['register']['persons_list'].append({})  # Добавляем новый объект для заполнения в опросе
             user['register']['persons_list__len'] += 1
             user['step'] -= 3
@@ -173,7 +210,8 @@ def register_summary(user):
     user['register']['persons_amount_text'] = f'{persons_amount} {persons_amount_plural}'
     user['register']['tour_date'] = tour[2]
     user['register']['sum'] = get_summary_sum(user, tour)
-    user['register']['payment_link'] = f'{ya_money_url}{user["register"]["sum"]}'
+    # user['register']['payment_link'] = f'{ya_money_url}{user["register"]["sum"]}'
+    user['register']['payment_link'] = f'{ya_money_url}'
     user['register']['tour_name'] = call_data_translate.get(user['register']['tour'], user['register']['tour'])
     user['register']['tour_info'] = tour[7]
 
@@ -203,6 +241,8 @@ def validate_phone(phone):
     elif len(phone) < 10:
         return None
     return phone
+
+
 # def send_confirm_menu(user):
 #     """Отправка клавиатуры с подтверждением сохранения введенных данных"""
 #     text = 'Были введены следующие данные \n\n'
@@ -237,7 +277,7 @@ question_types = {'text': check_answer_another,
                   'num': check_answer_another,
                   # 'tags': check_answer_another,
                   # 'action': check_answer_action,
-                  # 'image': check_answer_document,
+                  'image': check_answer_document,
                   # 'voice': check_answer_document,
                   # 'video': check_answer_document,
                   # 'coordinates': check_answer_coordinates,

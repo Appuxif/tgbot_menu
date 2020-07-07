@@ -6,6 +6,8 @@ ya_money_url = os.environ.get('YA_MONEY_URL')
 ya_money_url2 = os.environ.get('YA_MONEY_URL2')
 # ya_money_url2 = os.environ.get('YA_MONEY_URL2')
 
+payment_check_group = '-1001451251731'
+
 token = os.environ.get('TOKEN', '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4')
 token2 = os.environ.get('TOKEN2', '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4')
 
