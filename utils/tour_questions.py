@@ -4,10 +4,15 @@ from utils.variables import call_data_translate
 def get_question(n, tour_list=None):
     """Запрашивает вопрос из базы вопросов"""
     q = questions[n]
-    if q['name'] == 'tour' and tour_list is not None:
-        q['buttons'] = [{'text': call_data_translate.get(f'tour_{t[0]}', t[1]), 'value': f'tour_{t[0]}'}
-                        for t in tour_list if int(t[10]) < int(t[9])]  # Проверка на превышение числа брони
+    # if q['name'] == 'tour' and tour_list is not None:
+    if callable(q['buttons']):
+        q['buttons'] = q['buttons'](tour_list)
     return questions[n]
+
+
+def get_tour_buttons(tour_list):
+    return [{'text': call_data_translate.get(f'tour_{t[0]}', t[1]), 'value': f'tour_{t[0]}'}
+            for t in tour_list if int(t[10]) < int(t[9])]  # Проверка на превышение числа брони
 
 
 questions = [
@@ -18,7 +23,7 @@ questions = [
     {'title': 'Куда вы решили поехать?',
      'name': 'tour',
      'type': 'text',
-     'buttons': []},  # buttons будет заполнено при вызцове вопроса
+     'buttons': get_tour_buttons},  # buttons будет заполнено при вызове вопроса
     # 1
     {'title': 'Доступно мест: {user[register][tour_amount]}\n'
               'Разрешенный возраст: {user[register][tour_age]}+\n'

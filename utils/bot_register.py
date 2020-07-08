@@ -226,6 +226,7 @@ def register_summary(user):
             return update_msg_to_user(user, {'text': 'Превышено количество мест для тура. Кто-то вас опередил :(\n'
                                                      'Введите /start, чтобы начать заново'})
         raise err
+    tour[10] += len(user['register']['persons_list'])
     return True
 
 
