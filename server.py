@@ -64,9 +64,9 @@ async def handle(request):
 async def control(request):
     print(request.query)
     if 'reload' in request.query:
-        vars.update_variables()
-        botmenu.update_variables()
-        bottour.update_variables()
+        m, t = vars.update_variables()
+        botmenu.update_variables(m, t)
+        bottour.update_variables(t)
         print('Гугл таблица загружена')
     return web.Response(text=str(request.query))
 

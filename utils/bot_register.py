@@ -13,10 +13,11 @@ register_profile_questions_dict = {'registerTour': register_tour_questions, }
 tour_list = None
 
 
-def update_variables():
+def update_variables(t=None):
     global tour_list
     from utils.variables import tour_list
-    tour_list = tour_list
+    tour_list = t or tour_list
+    call_data_translate.update({f'tour_{t[0]}': t[1] for t in tour_list})
 
 
 update_variables()
