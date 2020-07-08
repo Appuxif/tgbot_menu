@@ -32,6 +32,7 @@ def register_profile(user, msg):
 
 def check_answer(user, msg, questions):
     """Проверка ответа на предыдущий вопрос"""
+    global tour_list
     if user['step'] > 0:
         if 'checked' in user:
             del user['checked']
@@ -163,6 +164,7 @@ def make_the_next_step(user, msg, questions):
 
 def send_next_question(user, questions):
     """Отправка следующего по счету вопроса"""
+    global tour_list
     # Выбор следующего вопроса для отправки
     qi = questions[user['step']]
     question = get_question(qi, tour_list)
