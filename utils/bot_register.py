@@ -5,23 +5,10 @@ import plural_ru
 from config import ya_money_url2 as ya_money_url
 from utils.bot_user_utils import update_msg_to_user, update_keyboard_to_user
 from utils.spreadsheet import send_book_to_table
-from utils.variables import register_tour_questions, call_data_translate
+import utils.variables as variables
 from utils.tour_questions import get_question
 
-register_profile_questions_dict = {'registerTour': register_tour_questions, }
-
-tour_list = None
-
-
-def update_variables():
-    global tour_list
-    import utils.variables as vars
-    tour_list = vars.tour_list
-    call_data_translate.update({f'tour_{t[0]}': t[1] for t in tour_list})
-    print('bottour', tour_list)
-
-
-update_variables()
+register_profile_questions_dict = {'registerTour': variables.register_tour_questions, }
 
 
 def register_profile(user, msg):
@@ -33,13 +20,12 @@ def register_profile(user, msg):
 
 def check_answer(user, msg, questions):
     """Проверка ответа на предыдущий вопрос"""
-    global tour_list
     if user['step'] > 0:
         if 'checked' in user:
             del user['checked']
             return False
         qi = questions[user['step'] - 1]
-        question = get_question(qi, tour_list)
+        question = get_question(qi, variables.tour_list)
         return check_question_type(user, msg, question)
 
 
@@ -165,10 +151,9 @@ def make_the_next_step(user, msg, questions):
 
 def send_next_question(user, questions):
     """Отправка следующего по счету вопроса"""
-    global tour_list
     # Выбор следующего вопроса для отправки
     qi = questions[user['step']]
-    question = get_question(qi, tour_list)
+    question = get_question(qi, variables.tour_list)
     if question['name'] == 'summary':
         success = register_summary(user)
         if not success:
@@ -180,7 +165,7 @@ def send_next_question(user, questions):
 
     # Доступное количество тура
     if user['register'].get('tour') and not user['register'].get('tour_amount'):
-        tour = [t for t in tour_list if f'tour_{t[0]}' == user['register']['tour']][0]
+        tour = [t for t in variables.tour_list if f'tour_{t[0]}' == user['register']['tour']][0]
         user['register']['tour_amount'] = int(tour[9]) - int(tour[10])
         user['register']['tour_age'] = int(tour[8])
 
@@ -212,13 +197,13 @@ def register_summary(user):
     """Действия, если question['name'] == 'summary'"""
     persons_amount = user["register"]["persons_amount"]
     persons_amount_plural = plural_ru.ru(int(persons_amount), ["место", "места", "мест"])
-    tour = [t for t in tour_list if f'tour_{t[0]}' == user['register']['tour']][0]
+    tour = [t for t in variables.tour_list if f'tour_{t[0]}' == user['register']['tour']][0]
     user['register']['persons_amount_text'] = f'{persons_amount} {persons_amount_plural}'
     user['register']['tour_date'] = tour[2]
     user['register']['sum'] = get_summary_sum(user, tour)
     # user['register']['payment_link'] = f'{ya_money_url}{user["register"]["sum"]}'
     user['register']['payment_link'] = f'{ya_money_url}'
-    user['register']['tour_name'] = call_data_translate.get(user['register']['tour'], user['register']['tour'])
+    user['register']['tour_name'] = variables.call_data_translate.get(user['register']['tour'], user['register']['tour'])
     user['register']['tour_info'] = tour[7]
 
     # Отправка данных в таблицу

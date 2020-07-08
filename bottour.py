@@ -12,7 +12,7 @@ from utils.bot_start_register import start_register_tour, start_test_register_to
 from utils.bot_user_utils import update_keyboard_to_user
 from utils.spreadsheet import send_payment_accept
 from utils.tour_questions import questions
-from utils.variables import call_data_translate, tour_list
+import utils.variables as variables
 
 bot = telebot.TeleBot(token)
 
@@ -29,7 +29,19 @@ bot = telebot.TeleBot(token)
 # ]
 users = {}
 debug = False
-reg.update_variables()
+
+
+# def update_variables():
+#     global tour_list
+#     import utils.variables as variables
+#     tour_list = variables.tour_list
+#     call_data_translate.update({f'tour_{t[0]}': t[1] for t in tour_list})
+#     print('bottour', tour_list)
+#
+#
+# update_variables()
+
+# reg.update_variables()
 
 
 def process_msg(msg):
@@ -43,8 +55,8 @@ def process_msg(msg):
     if call_data.startswith('pmntchck'):
         cd, tour, n, user_id, payment_id = call_data.rsplit('_', 4)
         tour = f'{tour}_{n}'
-        tour_ = [t for t in tour_list if f'tour_{t[0]}' == tour][0]
-        tour_name = call_data_translate.get(tour, tour)
+        tour_ = [t for t in variables.tour_list if f'tour_{t[0]}' == tour][0]
+        tour_name = variables.call_data_translate.get(tour, tour)
         if cd == 'pmntchck_n':
             send_payment_accept(tour_name, payment_id, 'declinePayment')
             bot.send_message(user_id, 'В подтверждении брони отказано. Подробности по телефону 8 923 355-78-99')
@@ -330,7 +342,7 @@ def callback_query(call):
 
         # bot.delete_message(call.from_user.id, call.message.message_id)
         try:
-            txt = call_data_translate.get(call.data, call.data)
+            txt = variables.call_data_translate.get(call.data, call.data)
             if txt.startswith('pmntchck_n'):
                 txt = 'Отказано'
             elif txt.startswith('pmntchck_y'):
