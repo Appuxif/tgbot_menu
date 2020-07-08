@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import asyncio
-import ssl
-import traceback
-import sys
-from datetime import datetime
+# import asyncio
+# import ssl
+# import traceback
+# import sys
+# from datetime import datetime
+import threading
+from time import sleep
+
+import requests
 from aiohttp import web
 
 import telebot
@@ -100,6 +104,14 @@ bottour.bot.set_webhook(
 #     await site.start()
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(startHTTP())
+def server_no_sleep():
+    """Время от времени делает запрос на сервер, чтобы он не уснул"""
+    requests.get(WEBHOOK_URL_BASE)
+    sleep(600)
+
+
+threading.Thread(target=server_no_sleep, daemon=True).start()
+
 
 web.run_app(
     app,

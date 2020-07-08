@@ -2,7 +2,7 @@ import re
 
 import plural_ru
 
-from config import ya_money_url2 as ya_money_url
+from config import ya_money_url2 as ya_money_url, sber_card
 from utils.bot_user_utils import update_msg_to_user, update_keyboard_to_user
 from utils.spreadsheet import send_book_to_table
 import utils.variables as variables
@@ -202,7 +202,9 @@ def register_summary(user):
     user['register']['tour_date'] = tour[2]
     user['register']['sum'] = get_summary_sum(user, tour)
     # user['register']['payment_link'] = f'{ya_money_url}{user["register"]["sum"]}'
-    user['register']['payment_link'] = f'{ya_money_url}'
+    # user['register']['payment_link'] = f'{ya_money_url}'
+    user['register']['payment_link'] = f'Перевод на карту сбербанка: {sber_card}\n' \
+                                       f'Оплата картой на сайте: {ya_money_url}'
     user['register']['tour_name'] = variables.call_data_translate.get(user['register']['tour'], user['register']['tour'])
     user['register']['tour_info'] = tour[7]
 
