@@ -28,7 +28,7 @@ bot = telebot.TeleBot(token)
 #     ('0', 'Лично курьеру'),
 #     ('1', 'Оплата банковской картой')
 # ]
-users = {}
+# users = {}
 debug = False
 
 
@@ -60,7 +60,7 @@ def process_msg(msg):
         tour_name = variables.call_data_translate.get(tour, tour)
         if cd == 'pmntchck_n':
             send_payment_accept(tour_name, payment_id, 'declinePayment')
-            bot.send_message(user_id, 'В подтверждении брони отказано. Подробности по телефону 8 923 355-78-99')
+            bot.send_message(user_id, questions[-2]['title'])
         else:
             send_payment_accept(tour_name, payment_id, 'acceptPayment')
             user = {'register': {'tour_name': tour_name,
@@ -75,8 +75,9 @@ def process_msg(msg):
 
     # Поиск пользователя по user_id
     if getattr(msg, 'text', '') == '/start':
-        if msg.from_user.id in users:
-            users.pop(msg.from_user.id)
+        db.users.delete_one({'_id': msg.from_user.id})
+        # if msg.from_user.id in users:
+        #     users.pop(msg.from_user.id)
     user = get_or_create_user(msg)
     print(user)
 
@@ -99,22 +100,25 @@ def process_msg(msg):
     # Сохранение пользователя в БД
     if user.get('need_to_delete', False) is True:
         print('Пользователь удален из базы бота')
-        users.pop(msg.from_user.id)
+        db.users.delete_one({'_id': msg.from_user.id})
+        # users.pop(msg.from_user.id)
     else:
-        users[msg.from_user.id] = user
+        db.users.update_one({'_id': msg.from_user.id}, {'$set': user}, upsert=True)
+        # users[msg.from_user.id] = user
 
 
 def get_or_create_user(msg):
     """Находит в базе или создает ногово пользователя в коллекции пользователей бота"""
-    user = users.get(msg.from_user.id)
-    # user = db.users.find_one({'_id': msg.from_user.id})
+    # user = users.get(msg.from_user.id)
+    user = db.users.find_one({'_id': msg.from_user.id})
     if user is None:
         print("Новый пользователь")
         # user = {'state': 'wait_for_fio', 'menu': 1}
-        user = {'state': 'new_user', 'tg': f'{msg.from_user.id} {msg.from_user.username} '
-                                           f'{msg.from_user.first_name} {msg.from_user.last_name}'}
-        users[msg.from_user.id] = user
-        # db.users.insert_one({user})
+        user = {'_id': msg.from_user.id, 'state': 'new_user',
+                'tg': f'{msg.from_user.id} {msg.from_user.username} '
+                      f'{msg.from_user.first_name} {msg.from_user.last_name}'}
+        # users[msg.from_user.id] = user
+        db.users.insert_one({user})
         if (getattr(msg, 'text', '') or getattr(msg, 'data', '')) != '/start_register':
             bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи! '
                                                'Давай забронируем место в крутом путешествии!!',
