@@ -4,7 +4,7 @@ from utils.variables import call_data_translate
 def get_question(n, tour_list=None):
     """Запрашивает вопрос из базы вопросов"""
     print(tour_list)
-    q = questions[n]
+    q = questions[n].copy()
     # if q['name'] == 'tour' and tour_list is not None:
     if callable(q.get('buttons')):
         q['buttons'] = q['buttons'](tour_list)

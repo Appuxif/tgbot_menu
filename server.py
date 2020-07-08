@@ -9,7 +9,7 @@ from aiohttp import web
 
 import telebot
 
-import utils.variables as vars
+import utils.variables as variables
 # from botmenu import bot, get_all
 import botmenu
 import bottour
@@ -64,7 +64,7 @@ async def handle(request):
 async def control(request):
     print(request.query)
     if 'reload' in request.query:
-        vars.update_variables()
+        variables.update_variables()
         botmenu.update_variables()
         # bottour.reg.update_variables()
         print('Гугл таблица загружена')
