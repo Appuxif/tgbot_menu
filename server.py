@@ -105,9 +105,10 @@ bottour.bot.set_webhook(
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(startHTTP())
 def server_no_sleep():
-    """Время от времени делает запрос на сервер, чтобы он не уснул"""
-    requests.get(WEBHOOK_URL_BASE)
-    sleep(600)
+    """Время от времени делает запрос на сервер, чтобы он не уснул - heroku"""
+    while True:
+        requests.get(WEBHOOK_URL_BASE)
+        sleep(600)
 
 
 threading.Thread(target=server_no_sleep, daemon=True).start()
