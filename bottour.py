@@ -34,6 +34,7 @@ update_variables()
 
 def process_msg(msg):
     """Обработка сообщений от телеграма"""
+    # Только для дебага
     if debug and msg.from_user.id != 432134928:
         return
 
@@ -52,6 +53,10 @@ def process_msg(msg):
             user = {'register': {'tour_name': tour_name,
                                  'tour_date': tour_[2], 'tour_info': tour_[7]}}
             bot.send_message(user_id, questions[-1]['title'].format(user=user))
+        return
+
+    # Бот должен реагировать только на личные сообщения
+    if msg.from_user.id != msg.chat.id:
         return
 
     # Поиск пользователя по user_id
