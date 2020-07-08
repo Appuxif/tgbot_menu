@@ -56,7 +56,7 @@ def process_msg(msg):
         return
 
     # Бот должен реагировать только на личные сообщения
-    if msg.from_user.id != msg.chat.id:
+    if msg.from_user.id != getattr(msg, 'chat', msg.message.chat).id:
         return
 
     # Поиск пользователя по user_id
