@@ -5,7 +5,7 @@ def get_question(n, tour_list=None):
     """Запрашивает вопрос из базы вопросов"""
     q = questions[n]
     # if q['name'] == 'tour' and tour_list is not None:
-    if callable(q['buttons']):
+    if callable(q.get('buttons')):
         q['buttons'] = q['buttons'](tour_list)
     return questions[n]
 
