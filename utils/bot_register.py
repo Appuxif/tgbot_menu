@@ -203,7 +203,8 @@ def register_summary(user):
     user['register']['sum'] = get_summary_sum(user, tour)
     # user['register']['payment_link'] = f'{ya_money_url}{user["register"]["sum"]}'
     # user['register']['payment_link'] = f'{ya_money_url}'
-    user['register']['payment_link'] = f'Перевод на карту сбербанка: {sber_card}\n' \
+    user['register']['payment_link'] = f'Перевод на карту сбербанка: \n' \
+                                       f'{sber_card}\n' \
                                        f'Оплата картой на сайте: {ya_money_url}'
     user['register']['tour_name'] = variables.call_data_translate.get(user['register']['tour'], user['register']['tour'])
     user['register']['tour_info'] = tour[7]
