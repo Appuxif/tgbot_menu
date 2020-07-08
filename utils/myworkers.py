@@ -1,6 +1,5 @@
 from queue import Queue
 from threading import Lock, Thread
-from telegram.worker import BaseWorker
 
 
 class MyWorkers:
@@ -53,20 +52,3 @@ class MyWorkers:
 
     def add_task(self, func, args=(), name=''):
         self._queue.put((func, args, name))
-
-
-# Для tdlib
-class MySimpleWorker(BaseWorker):
-    """Simple one-thread worker"""
-
-    def run(self) -> None:
-        self._thread = Thread(target=self._run_thread)
-        self._thread.daemon = True
-        self._thread.start()
-
-    def _run_thread(self) -> None:
-
-        while self._is_enabled:
-            handler, args = self._queue.get()
-            handler(*args)
-            self._queue.task_done()
