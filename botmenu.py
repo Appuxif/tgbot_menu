@@ -35,7 +35,6 @@ def update_variables():
     import utils.variables as vars
     menu_dict = vars.menu_dict
     tour_list = vars.tour_list
-    print('botmenu', tour_list)
 
 
 update_variables()
