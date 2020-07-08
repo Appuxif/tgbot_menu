@@ -1,15 +1,14 @@
 from datetime import datetime, timezone
-from time import sleep
+from time import sleep, monotonic
 from urllib.parse import quote_plus
 from uuid import uuid4
 
 import requests
 
 from config import sheet_api_url
+from utils.myworkers import MyWorkers
 
-# tour_list = [
-#     # '29 февраля-1 марта АБЗАКОВО-БАННОЕ (от 4900 руб.)',
-# ]
+book_worker = MyWorkers(1)
 
 
 # Получение JSON из гугл таблицы
@@ -115,11 +114,22 @@ def send_book_to_table(user):
         'p_list': [[now, user['tg']] + list(p.values()) + [user['register']['payment_id']]
                    for p in user['register']['persons_list']]
     }
-
-    data = get_data_from_sheet(request, 'POST')
+    data = {}
+    book_worker.add_task(_send_book_to_table, (request, data))
+    timer = monotonic()
+    while not data:
+        if monotonic() - timer > 30:
+            raise TimeoutError('Too long response')
+        sleep(0.3)
     print('Ответ от GAS', data)
     if not('msg' in data and data['msg'] == 'OK'):
         raise ValueError(data)
+
+
+def _send_book_to_table(request, response):
+    """Вспомогательная функция для отправки брони асинхронно"""
+    data = get_data_from_sheet(request, 'POST')
+    response.update(data)
 
 
 def send_payment_accept(tour, payment_id, method=None):
