@@ -55,8 +55,9 @@ def process_msg(msg):
             bot.send_message(user_id, questions[-1]['title'].format(user=user))
         return
 
+    # print(msg.from_user.id, getattr(msg, 'message', msg).chat.id)
     # Бот должен реагировать только на личные сообщения
-    if msg.from_user.id != getattr(msg, 'chat', msg.message.chat).id:
+    if msg.from_user.id != getattr(msg, 'message', msg).chat.id:
         return
 
     # Поиск пользователя по user_id
