@@ -11,4 +11,4 @@ from bson.json_util import dumps
 url = os.environ.get('MONGODB_URI')
 db_name = url.rsplit('/', 1)[1]
 # Объект базы данных монгоБД
-db = MongoClient(url, connect=False)[db_name]
+db = MongoClient(url, connect=False, retryWrite=False)[db_name]
