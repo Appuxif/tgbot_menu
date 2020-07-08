@@ -28,7 +28,7 @@ def get_data_from_sheet(params, method='GET'):
 
 def get_tour_list_from_data(data):
     # return [(d['index'], d['schedule']) for d in data['data']]
-    return [tuple(d.values()) for d in data['data']]
+    return [list(d.values()) for d in data['data']]
 
 
 def get_menu_dict_from_data(data):
