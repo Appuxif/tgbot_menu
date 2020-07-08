@@ -23,7 +23,6 @@ def update_keyboard_to_user(user, keyboard_dict):
     keyboard_to_user = user.get('keyboard_to_user', {})
     keyboard_to_user.update(keyboard_dict)
     user['keyboard_to_user'] = keyboard_to_user
-    return False
 
 
 def update_msg_to_user(user, msg_dict):

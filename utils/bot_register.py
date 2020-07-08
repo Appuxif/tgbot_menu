@@ -166,7 +166,8 @@ def send_next_question(user, questions):
     qi = questions[user['step']]
     question = get_question(qi, tour_list)
     if question['name'] == 'summary':
-        register_summary(user)
+        if register_summary(user):
+            return True  # Если возникнет ошибка, то регистрация будет прервана
     elif question['name'] == 'register_done':
         # Завершение регистрации
         user['register']['tour_destination'] = 'tour_destination'
@@ -216,7 +217,15 @@ def register_summary(user):
     user['register']['tour_info'] = tour[7]
 
     # Отправка данных в таблицу
-    send_book_to_table(user)
+    try:
+        send_book_to_table(user)
+    except ValueError as err:
+        if 'booking amount exceeded' in str(err):
+            user['need_to_delete'] = True
+            return update_msg_to_user(user, {'text': 'Превышено количество мест для тура. Кто-то вас опередил :(\n'
+                                                     'Введите /start, чтобы начать заново'})
+        raise err
+    return True
 
 
 def get_summary_sum(user, tour):
