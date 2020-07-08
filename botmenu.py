@@ -30,11 +30,12 @@ menu_dict = tour_list = None
 # print('Гугл таблица загружена')
 
 
-def update_variables(m=None, t=None):
+def update_variables():
     global menu_dict, tour_list
-    from utils.variables import menu_dict, tour_list
-    menu_dict = m or menu_dict
-    tour_list = t or tour_list
+    import utils.variables as vars
+    menu_dict = vars.menu_dict
+    tour_list = vars.tour_list
+    print('botmenu', tour_list)
 
 
 update_variables()
