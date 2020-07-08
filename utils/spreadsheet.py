@@ -111,7 +111,7 @@ def send_book_to_table(user):
     request = {
         'method': 'addBook',
         'tour': user['register']['tour_name'][:20],
-        'p_list': [[now, user['tg']] + list(p.values()) + [user['register']['payment_id']]
+        'p_list': [[now, user['tg']] + list(p.values()) + [user['register']['payment_id'], 'Ожидание оплаты']
                    for p in user['register']['persons_list']]
     }
     data = {}
