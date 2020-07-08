@@ -96,7 +96,9 @@ questions = [
      'type': 'text',
      'buttons': [{'text': call_data_translate.get('/start_register', '/start_register'), "value": "/start_register"}]},
     # {'title': 'Ура! Вы забронировали путешествие {user[register][tour_destination]}, {user[register][tour_date]}, '
-    {'title': 'В подтверждении брони отказано. Подробности по телефону 8 923 355-78-99'},
+    # {'title': 'В подтверждении брони отказано. Подробности по телефону 8 923 355-78-99'},
+    {'title': 'Что-то пошло не так. Возможно ваша квитанция не прошла верификацию. '
+              'Свяжитесь, пожалуйста, с нашим менеджером по телефону 8 950 544-74-73'},
     {'title': 'Ура, все прошло успешно! Вы забронировали путешествие {user[register][tour_name]}\n'
               'Дата: {user[register][tour_date]}\n\n'
               '{user[register][tour_info]}.\n\n'
