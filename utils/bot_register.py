@@ -74,10 +74,11 @@ def check_answer_another(user, msg, question):
     # Проверка телефона
     if field == 'phone' or f == 'phone':
         # Проводить проверку в БД по номеру телефона
-        p = validate_phone(msg.text)
-        if p is None:
-            update_msg_to_user(user, {'text': 'Введите номер телефона в формате 7XXXXXXXXXX'})
-            return True
+        if not(data == '-' and len(user['register']['persons_list']) != 1):
+            p = validate_phone(data)
+            if p is None:
+                update_msg_to_user(user, {'text': 'Введите номер телефона в формате 7XXXXXXXXXX'})
+                return True
 
     # Проверка количества брони
     if field == 'persons_amount' and int(data) > user['register']['tour_amount']:
@@ -172,8 +173,9 @@ def send_next_question(user, questions):
     question_text = question['title'].format(user=user)
 
     # Отправляем следующий вопрос
-    conditions = question.get('conditions', {})
-    condition = all([isinstance(v, bool) and (f in user) == v or user.get(f) == v for f, v in conditions.items()])
+    # conditions = question.get('conditions', {})
+    # condition = all([isinstance(v, bool) and (f in user) == v or user.get(f) == v for f, v in conditions.items()])
+    condition = eval(question.get('condition', 'True'))
 
     if condition:
         buttons = [(btn.get('text', btn.get('value')), btn['value']) for btn in question.get('buttons', [])]
@@ -186,7 +188,7 @@ def send_next_question(user, questions):
                 user['register']['persons_amount']):
             user['register']['persons_list'].append({})  # Добавляем новый объект для заполнения в опросе
             user['register']['persons_list__len'] += 1
-            user['step'] -= 3
+            user['step'] -= 4
         else:
             user['step'] += 1
         if user['step'] < len(questions):

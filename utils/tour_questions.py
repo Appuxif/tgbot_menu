@@ -35,9 +35,15 @@ questions = [
      'name': 'persons_list__name',
      'type': 'text'},
     # 3
+    {'title': 'Напишите телефон туриста {user[register][persons_list__len]}',
+     'name': 'persons_list__phone',
+     'type': 'text',
+     'condition': 'len(user["register"].get("persons_list")) == 1'},
+
     {'title': 'Напишите телефон туриста {user[register][persons_list__len]} (или дефиз, чтобы пропустить)',
      'name': 'persons_list__phone',
-     'type': 'text'},
+     'type': 'text',
+     'condition': 'len(user["register"].get("persons_list")) != 1'},
     # 4
     {'title': 'Напишите число полных лет туриста {user[register][persons_list__len]}',
      'name': 'persons_list__age',
@@ -46,7 +52,8 @@ questions = [
     {'title': '',
      'name': 'loop',
      'type': 'none',
-     'conditions': {'none_field': True}},
+     # 'conditions': {'none_field': True}},
+     'condition': 'user["register"].get("none_field") is not None'},
     # Отправить документ для ознакомления. Нужна ссылка на документ. Просто вставить ссылку в текст
     # {'title': 'Оплачивая тур вы соглашаетесь с нашими условиями бронирования. '
     #           'Вы принимаете ?',
