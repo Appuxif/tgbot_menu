@@ -118,7 +118,7 @@ def get_or_create_user(msg):
                 'tg': f'{msg.from_user.id} {msg.from_user.username} '
                       f'{msg.from_user.first_name} {msg.from_user.last_name}'}
         # users[msg.from_user.id] = user
-        db.users.insert_one({user})
+        db.users.insert_one(user)
         if (getattr(msg, 'text', '') or getattr(msg, 'data', '')) != '/start_register':
             bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи! '
                                                'Давай забронируем место в крутом путешествии!!',
