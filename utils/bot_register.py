@@ -166,7 +166,8 @@ def send_next_question(user, questions):
     qi = questions[user['step']]
     question = get_question(qi, tour_list)
     if question['name'] == 'summary':
-        if register_summary(user):
+        success = register_summary(user)
+        if not success:
             return True  # Если возникнет ошибка, то регистрация будет прервана
     elif question['name'] == 'register_done':
         # Завершение регистрации
