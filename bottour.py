@@ -7,7 +7,8 @@ import telebot
 from config import token2 as token, payment_check_group
 
 # telebot.apihelper.proxy = {'https': 'http://52.15.172.134:7778'}
-from utils.bot_register import register_profile_questions_dict, register_profile, update_variables
+from utils.bot_register import register_profile_questions_dict, register_profile
+import utils.bot_register as reg
 from utils.bot_start_register import start_register_tour, start_test_register_tour
 from utils.bot_user_utils import update_keyboard_to_user
 from utils.spreadsheet import send_payment_accept
