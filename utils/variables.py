@@ -12,7 +12,7 @@ def update_variables():
     global menu_dict, tour_list
     menu_dict, tour_list = get_all()
     # print(menu_dict)
-    print(tour_list)
+    # print(tour_list)
     call_data_translate.update({f'tour_{t[0]}': t[1] for t in tour_list})
     return menu_dict, tour_list
 

@@ -10,6 +10,7 @@ from config import token2 as token, payment_check_group
 import utils.bot_register as reg
 from utils.bot_start_register import start_register_tour, start_test_register_tour
 from utils.bot_user_utils import update_keyboard_to_user
+from utils.mongodb_utils import db
 from utils.spreadsheet import send_payment_accept
 from utils.tour_questions import questions
 import utils.variables as variables
@@ -106,12 +107,14 @@ def process_msg(msg):
 def get_or_create_user(msg):
     """Находит в базе или создает ногово пользователя в коллекции пользователей бота"""
     user = users.get(msg.from_user.id)
+    # user = db.users.find_one({'_id': msg.from_user.id})
     if user is None:
         print("Новый пользователь")
         # user = {'state': 'wait_for_fio', 'menu': 1}
         user = {'state': 'new_user', 'tg': f'{msg.from_user.id} {msg.from_user.username} '
                                            f'{msg.from_user.first_name} {msg.from_user.last_name}'}
         users[msg.from_user.id] = user
+        # db.users.insert_one({user})
         if (getattr(msg, 'text', '') or getattr(msg, 'data', '')) != '/start_register':
             bot.send_message(msg.from_user.id, 'Привет, я бот ДоскиЛыжи! '
                                                'Давай забронируем место в крутом путешествии!!',
