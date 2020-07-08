@@ -30,7 +30,7 @@ bot = telebot.TeleBot(token)
 # ]
 users = {}
 debug = False
-update_variables()
+reg.update_variables()
 
 
 def process_msg(msg):
