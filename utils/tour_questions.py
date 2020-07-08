@@ -70,7 +70,7 @@ questions = [
      'name': 'register_done',
      'type': 'text',
      'buttons': [{'text': call_data_translate.get('/start_register', '/start_register'), "value": "/start_register"}]},
-    # {'title': 'Ура! Вы забронировали путеществие {user[register][tour_destination]}, {user[register][tour_date]}, '
+    # {'title': 'Ура! Вы забронировали путешествие {user[register][tour_destination]}, {user[register][tour_date]}, '
     {'title': 'Вы забронировали путешествие {user[register][tour_name]}\n'
               'Дата: {user[register][tour_date]}\n\n'
               '{user[register][tour_info]}.\n\n'
