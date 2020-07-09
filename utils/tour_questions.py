@@ -65,11 +65,16 @@ questions = [
     #  'type': 'text',
     #  'isBool': True,
     #  'buttons': [{"value": "Да"}, {"value": "Нет"}]},
+    {'title': 'Выберите способ оплаты',
+     'name': 'payment_type',
+     'type': 'text',
+     'buttons': [{"text": call_data_translate.get('payment_type_1', 'payment_type_1'), "value": "payment_type_1"},
+                 {"text": call_data_translate.get('payment_type_2', 'payment_type_2'), "value": "payment_type_2"}]},
     # 6
     {'title': 'Ваш заказ: {user[register][persons_amount_text]} на {user[register][tour_name]}\n'
               '{user[register][tour_date]}.\n'
               'Итого к оплате: {user[register][sum]}\n\n'
-              'Как оплатить: \n'
+              # 'Как оплатить: \n'
               '{user[register][payment_link]}\n\n'
               'Обязательно сохраните чек, сфотографируйте его или сделайте скриншот (принтскрин)\n'
               'После оплаты нажмите кнопку "Оплачено" и отправьте чек ответным сообщением.\n\n'
@@ -91,7 +96,8 @@ questions = [
               # 'Подождите, пожалуйста, немного.',
               'Как только мы проверим платеж, подтвердим бронь путешествия в этом чате.\n'
               'А также напишем, что нужно будет взять с собой в поездку.\n'
-              'Подождите, пожалуйста, немного.',
+              'Подождите, пожалуйста, немного.\n\n'
+              'А пока можете забронировать другие путешествия.',
      'name': 'register_done',
      'type': 'text',
      'buttons': [{'text': call_data_translate.get('/start_register', '/start_register'), "value": "/start_register"}]},

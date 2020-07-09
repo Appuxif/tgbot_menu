@@ -108,7 +108,7 @@ def process_msg(msg):
 
 
 def get_or_create_user(msg):
-    """Находит в базе или создает ногово пользователя в коллекции пользователей бота"""
+    """Находит в базе или создает нового пользователя в коллекции пользователей бота"""
     # user = users.get(msg.from_user.id)
     user = db.users.find_one({'_id': msg.from_user.id})
     if user is None:

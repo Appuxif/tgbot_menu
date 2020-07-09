@@ -1,9 +1,11 @@
 menu_dict = tour_list = None
-register_tour_questions = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+register_tour_questions = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 call_data_translate = {
     '/start_register': 'Забронировать!',
     'payment_done': 'Оплачено',
+    'payment_type_1': 'Перевод на карту сбербанка',
+    'payment_type_2': 'Оплата по карте через сайт',
 }
 
 

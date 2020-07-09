@@ -179,7 +179,7 @@ def send_next_question(user, questions):
 
     if condition:
         buttons = [(btn.get('text', btn.get('value')), btn['value']) for btn in question.get('buttons', [])]
-        row_width = 1 if question['name'] == 'tour' else 2
+        row_width = 1 if question['name'] in ['tour', 'payment_type'] else 2
         update_keyboard_to_user(user, {'buttons': buttons, 'text': question_text, 'row_width': row_width})
         return True
     else:
@@ -205,9 +205,14 @@ def register_summary(user):
     user['register']['sum'] = get_summary_sum(user, tour)
     # user['register']['payment_link'] = f'{ya_money_url}{user["register"]["sum"]}'
     # user['register']['payment_link'] = f'{ya_money_url}'
-    user['register']['payment_link'] = f'Перевод на карту сбербанка: \n' \
-                                       f'{sber_card}\n' \
-                                       f'Оплата картой на сайте: {ya_money_url}'
+    # user['register']['payment_link'] = f'Перевод на карту сбербанка: \n' \
+    #                                    f'{sber_card}\n' \
+    #                                    f'Оплата картой на сайте: {ya_money_url}'
+    if user['register']['payment_type'] == 'payment_type_1':
+        user['register']['payment_link'] = f'Перевод на карту сбербанка: \n{sber_card}'
+    else:
+        user['register']['payment_link'] = f'Оплата картой на сайте:\n{ya_money_url}'
+
     user['register']['tour_name'] = variables.call_data_translate.get(user['register']['tour'], user['register']['tour'])
     user['register']['tour_info'] = tour[7]
 
