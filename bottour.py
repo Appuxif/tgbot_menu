@@ -249,7 +249,9 @@ def answer_to_user(user, msg):
         u = f'{user["register"]["tour"]}_{user["telegramID"]}_{user["register"]["payment_id"]}'
         bot.send_photo(payment_check_group, user["register"]["payment_confirmation"],
                        f'Новая <a href="{user["register"]["payment_confirmation"]}">оплата</a> '
-                       f'брони от {user["tg"]}\n\n'
+                       f'брони от {user["tg"]}\n'
+                       f'{user["register"]["persons_list"][0]["name"]}\n'
+                       f'{user["register"]["persons_list"][0]["phone"]}\n\n'
                        f'{user["register"]["tour_name"]}\n'
                        f'{user["register"]["tour_date"]}\n'
                        f'Сумма: {user["register"]["sum"]}\n'

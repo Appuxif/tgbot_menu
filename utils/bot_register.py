@@ -75,8 +75,8 @@ def check_answer_another(user, msg, question):
     if field == 'phone' or f == 'phone':
         # Проводить проверку в БД по номеру телефона
         if not(data == '-' and len(user['register']['persons_list']) != 1):
-            p = validate_phone(data)
-            if p is None:
+            data = validate_phone(data)
+            if data is None:
                 update_msg_to_user(user, {'text': 'Введите номер телефона в формате 7XXXXXXXXXX'})
                 return True
 
@@ -104,7 +104,8 @@ def check_answer_another(user, msg, question):
 def check_answer_document(user, msg, question):
     """Проверка отправки изображения, аудио или видео"""
     if 'document' in user['register'] and (question['type'] == 'image' and
-                                           user['register']['document']['file_type'] in ['photo', 'document'] or
+                                           # user['register']['document']['file_type'] in ['photo', 'document'] or
+                                           user['register']['document']['file_type'] in ['photo'] or
                                            user['register']['document']['file_type'] == question['type']):
         # user['register'][question['name']] = user['register']['document']['file_url']
         user['register'][question['name']] = user['register']['document']['file_id']
