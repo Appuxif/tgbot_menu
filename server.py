@@ -83,7 +83,7 @@ async def control(request):
 app.router.add_get('/control', control)
 # app.router.add_get('/test', test)
 app.router.add_post('/{token}/', handle)
-app.router.add_static('/test', 'static')
+app.router.add_static('/', 'static')
 
 # Set webhook
 botmenu.bot.remove_webhook()
