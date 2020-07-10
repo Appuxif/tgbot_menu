@@ -28,7 +28,11 @@ def get_data_from_sheet(params, method='GET'):
 
 def get_tour_list_from_data(data):
     # return [(d['index'], d['schedule']) for d in data['data']]
-    return [list(d.values()) for d in data['data']]
+    l = [list(d.values()) for d in data['data']]
+    for r in l:
+        r[3], r[4], r[5] = int(r[3]), int(r[4] or r[3]), int(r[5] or r[3])
+        r[8], r[9], r[10] = int(r[8]), int(r[9]), int(r[10] or 0)
+    return l
 
 
 def get_menu_dict_from_data(data):
@@ -111,7 +115,8 @@ def send_book_to_table(user):
     request = {
         'method': 'addBook',
         'tour': user['register']['tour_name'][:20],
-        'p_list': [[now, user['tg']] + list(p.values()) + [user['register']['payment_id'], 'Ожидание оплаты']
+        'p_list': [[now, user['tg']] + p['name'].split(' ', 1) + list(p.values())[1:] +
+                   [user['register']['payment_id'], 'Ожидание оплаты']
                    for p in user['register']['persons_list']]
     }
     data = {}

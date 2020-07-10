@@ -90,6 +90,12 @@ def check_answer_another(user, msg, question):
         update_msg_to_user(user, {'text': 'Указанный возраст не подходит под условия тура'})
         return True
 
+    # Проверка имени и фамилии
+    if f == 'name' and len(data.split()) < 2:
+        update_msg_to_user(user, {'text': 'Нужно ввести имя и фамилию в одном сообщении, разделя слова пробелом'})
+        return True
+
+    # Заполнение списка
     if field.endswith('_list'):
         last_item = user['register'].get(field, [{}])[-1]
         last_item[f] = data
@@ -97,7 +103,7 @@ def check_answer_another(user, msg, question):
             user['register'][field] = user['register'].get(field, []) + [last_item]
     else:
         user['register'][field] = data
-    if question['name'] not in user['fields_entered']:
+    if field not in user['fields_entered']:
         user['fields_entered'] += [field]
 
 
