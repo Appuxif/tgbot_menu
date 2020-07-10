@@ -8,6 +8,8 @@
   <body>
 <!--  iso8859_1-->
     <video id="preview"></video>
+    <p id="info"></p>
+    <button id="switch_camera">SWITCH</button>
     <script type="text/javascript">
       let opts = {
         continuous: true,
@@ -18,12 +20,28 @@
         scanPeriod: 5
       };
       let scanner = new Instascan.Scanner(opts);
+      let p_info = document.getElementById('info');
+      let btn_switch = document.getElementById('switch_camera');
+      let camera_num = 0;
+      let cameras_list = [];
+      btn_switch.addEventListener('click', (e) => {
+          e.preventDefault();
+          scanner.stop();
+          camera_num = ++camera_num % cameras_list.length;
+          scanner.start(cameras_list[camera_num]);
+      });
+
       scanner.addListener('scan', function (content) {
         alert('scanner listener' + content);
         console.log(content);
       });
       Instascan.Camera.getCameras().then(function (cameras) {
+          cameras_list = cameras;
         if (cameras.length > 0) {
+            p_info.textContent = '';
+            for (let i = 0; i < cameras.length; i++) {
+                p_info.textContent += i + ' ' + cameras[i].name + '\n'
+            }
           scanner.start(cameras[0]);
         } else {
           console.error('No cameras found.');
