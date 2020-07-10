@@ -14,7 +14,7 @@
       let opts = {
         continuous: true,
         video: document.getElementById('preview'),
-        mirror: true,
+        mirror: false,
         captureImage: true,
         backgroundScan: false,
         scanPeriod: 5
@@ -37,12 +37,13 @@
       });
       Instascan.Camera.getCameras().then(function (cameras) {
           cameras_list = cameras;
+          camera_num = cameras.length - 1;
         if (cameras.length > 0) {
             p_info.textContent = '';
             for (let i = 0; i < cameras.length; i++) {
                 p_info.textContent += i + ' ' + cameras[i].name + '\n'
             }
-          scanner.start(cameras[0]);
+          scanner.start(cameras[camera_num]);
         } else {
           console.error('No cameras found.');
         }
