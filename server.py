@@ -75,8 +75,15 @@ async def control(request):
     return web.Response(text=str(request.query))
 
 
+# async def test(request):
+#     print(request.query)
+#     return web.
+
+
 app.router.add_get('/control', control)
+# app.router.add_get('/test', test)
 app.router.add_post('/{token}/', handle)
+app.router.add_static('/test', 'static')
 
 # Set webhook
 botmenu.bot.remove_webhook()
