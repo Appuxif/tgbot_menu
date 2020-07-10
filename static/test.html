@@ -15,7 +15,7 @@
   </head>
   <body>
 <!--  iso8859_1-->
-    <video id="preview" class="video-back" playsinline></video>
+    <video id="preview" class="video-back" style="max-width: 100%" playsinline></video>
     <p id="info"></p>
     <button id="switch_camera">SWITCH</button>
     <script type="text/javascript">
@@ -45,13 +45,14 @@
       });
       Instascan.Camera.getCameras().then(function (cameras) {
           cameras_list = cameras;
-          camera_num = cameras.length - 1;
+          // camera_num = cameras.length - 1;
         if (cameras.length > 0) {
             p_info.textContent = '';
             for (let i = 0; i < cameras.length; i++) {
                 p_info.textContent += i + ' ' + cameras[i].name + '\n'
             }
-          scanner.start(cameras[camera_num]);
+          // scanner.start(cameras[camera_num]);
+          scanner.start(cameras[0]);
         } else {
           console.error('No cameras found.');
         }
