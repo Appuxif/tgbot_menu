@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
     <title>Instascan</title>
-    <script type="text/javascript" src="instascan.min.js"></script>
+    <script type="text/javascript" src="https://rawcdn.githack.com/tobiasmuehl/instascan/4224451c49a701c04de7d0de5ef356dc1f701a93/bin/instascan.min.js"></script>
   </head>
   <body>
+<!--  iso8859_1-->
     <video id="preview"></video>
     <script type="text/javascript">
-      let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+      let opts = {
+        continuous: true,
+        video: document.getElementById('preview'),
+        mirror: true,
+        captureImage: true,
+        backgroundScan: false,
+        scanPeriod: 5
+      };
+      let scanner = new Instascan.Scanner(opts);
       scanner.addListener('scan', function (content) {
+        alert('scanner listener' + content);
         console.log(content);
       });
       Instascan.Camera.getCameras().then(function (cameras) {

@@ -233,6 +233,14 @@ def register_summary(user):
                                                      'Введите /start, чтобы начать заново'})
         raise err
     tour[10] = str(int(tour[10]) + len(user['register']['persons_list']))
+
+    # Добавочные кнопки
+    # if tour[11]:
+    #     addition_buttons = []
+    #     for l in tour[11].splitlines():
+    #         text, url = map(lambda x: x.strip(), l.split(':', 1))
+    #         addition_buttons.append((text, 'none', url))
+    #     update_keyboard_to_user(user, {'addition_buttons': addition_buttons})
     return True
 
 

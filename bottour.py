@@ -281,7 +281,8 @@ def make_keyboard(keyboard_to_user):
         markup.row(InlineKeyboardButton(text=f'Страница {page + 1} из {pages}', callback_data='none'))
         markup.add(*[InlineKeyboardButton(text=i + 1, callback_data=f'page_{i}') for i in range(pages)])
 
-    markup.add(*[InlineKeyboardButton(text=btn[0], callback_data=btn[1]) for btn in addition_buttons])
+    markup.add(*[InlineKeyboardButton(text=btn[0], callback_data=btn[1], url=btn[2] if len(btn) == 3 else None)
+                 for btn in addition_buttons])
     return markup
 
 
