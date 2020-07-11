@@ -10,12 +10,13 @@
       <link rel="manifest" href="public/manifest.json">
     <meta charset="utf-8">
     <title>Instascan</title>
-    <script type="text/javascript" src="https://rawcdn.githack.com/tobiasmuehl/instascan/4224451c49a701c04de7d0de5ef356dc1f701a93/bin/instascan.min.js"></script>
       <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script type="text/javascript" src="https://rawcdn.githack.com/tobiasmuehl/instascan/4224451c49a701c04de7d0de5ef356dc1f701a93/bin/instascan.min.js"></script>
   </head>
   <body>
 <!--  iso8859_1-->
-    <video id="preview" class="video-back" style="max-width: 100%" playsinline></video>
+<!--    <video id="preview" class="video-back" style="min-width: 100px" playsinline></video>-->
+    <video id="preview" class="video-back" style="min-width: 100px"></video>
     <p id="info"></p>
     <button id="switch_camera">SWITCH</button>
     <script type="text/javascript">
