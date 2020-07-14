@@ -9,8 +9,8 @@ sber_card = os.environ.get('SBER_CARD')
 
 payment_check_group = os.environ.get('PAYMENT_CHECK_GROUP', '-1001451251731')
 
-token = os.environ.get('TOKEN', '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4')
-token2 = os.environ.get('TOKEN2', '856621453:AAHtVJEIMsD5WZH9ytescn16_dYZajyluL4')
+token = os.environ.get('TOKEN')
+token2 = os.environ.get('TOKEN2')
 
 WEBHOOK_HOST = os.environ.get('HOST')
 WEBHOOK_PORT = 443
